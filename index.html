@@ -820,6 +820,120 @@
       font-size: 11px;
       color: var(--text-tertiary);
     }
+
+    /* Header actions */
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Meatball menu */
+    .menu-wrapper {
+      position: relative;
+    }
+
+    .menu-btn {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text-secondary);
+      cursor: pointer;
+      padding: 6px 8px;
+      display: flex;
+      align-items: center;
+    }
+
+    .menu-dropdown {
+      display: none;
+      position: absolute;
+      top: 100%;
+      right: 0;
+      margin-top: 4px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      min-width: 160px;
+      z-index: 50;
+      overflow: hidden;
+    }
+
+    .menu-dropdown.open {
+      display: block;
+    }
+
+    .menu-item {
+      width: 100%;
+      padding: 10px 14px;
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 14px;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .menu-item:hover {
+      background: var(--surface-hover);
+    }
+
+    .menu-item.danger {
+      color: var(--danger);
+    }
+
+    /* Confirm overlay */
+    .confirm-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.85);
+      z-index: 100;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .confirm-overlay.visible {
+      display: flex;
+    }
+
+    .confirm-modal {
+      background: var(--surface);
+      border-radius: var(--radius);
+      max-width: 340px;
+      width: 100%;
+      padding: 24px;
+    }
+
+    .confirm-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .confirm-desc {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    .confirm-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .confirm-actions .btn {
+      flex: 1;
+    }
+
+    .btn-danger {
+      background: var(--danger);
+      color: white;
+    }
   </style>
 </head>
 <body>
@@ -843,14 +957,26 @@
           <div class="greeting" id="quarter-display">Q1 2026</div>
           <div class="page-title">Goals</div>
         </div>
-        <button class="btn btn-ghost btn-sm" id="upload-btn">
-          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
-            <polyline points="17,8 12,3 7,8"/>
-            <line x1="12" y1="3" x2="12" y2="15"/>
-          </svg>
-          Upload
-        </button>
+        <div class="header-actions">
+          <button class="btn btn-ghost btn-sm" id="upload-btn">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+              <polyline points="17,8 12,3 7,8"/>
+              <line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+            Upload
+          </button>
+          <div class="menu-wrapper">
+            <button class="menu-btn" id="menu-btn">
+              <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                <circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/>
+              </svg>
+            </button>
+            <div class="menu-dropdown" id="menu-dropdown">
+              <button class="menu-item danger" id="reset-btn">Reset to default</button>
+            </div>
+          </div>
+        </div>
         <input type="file" class="upload-input" id="upload-input" accept=".md,.txt">
       </div>
 
@@ -912,6 +1038,18 @@
     </div>
   </div>
 
+  <!-- Reset Confirmation -->
+  <div class="confirm-overlay" id="confirm-overlay">
+    <div class="confirm-modal">
+      <div class="confirm-title">Reset to default?</div>
+      <div class="confirm-desc">This will clear all your goals, tasks, and progress and replace them with the default sample content.</div>
+      <div class="confirm-actions">
+        <button class="btn btn-ghost" id="confirm-cancel">Cancel</button>
+        <button class="btn btn-danger" id="confirm-reset">Reset</button>
+      </div>
+    </div>
+  </div>
+
   <div class="toast" id="toast"></div>
 
   <nav class="bottom-nav">
@@ -935,7 +1073,7 @@
 
   <script>
     // ============ VERSION ============
-    const APP_VERSION = '1.3';
+    const APP_VERSION = '1.4';
     document.getElementById('app-footer').innerHTML = `Northstar v${APP_VERSION} &copy; Setu Kathawate`;
 
     // ============ AUTH ============
@@ -1801,6 +1939,39 @@
       pendingConfig = null;
       document.getElementById('diff-overlay').classList.remove('visible');
       document.getElementById('diff-confirm').classList.remove('btn-disabled');
+    });
+
+    // ============ MENU & RESET ============
+    const menuBtn = document.getElementById('menu-btn');
+    const menuDropdown = document.getElementById('menu-dropdown');
+
+    menuBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      menuDropdown.classList.toggle('open');
+    });
+
+    document.addEventListener('click', () => {
+      menuDropdown.classList.remove('open');
+    });
+
+    document.getElementById('reset-btn').addEventListener('click', () => {
+      menuDropdown.classList.remove('open');
+      document.getElementById('confirm-overlay').classList.add('visible');
+    });
+
+    document.getElementById('confirm-cancel').addEventListener('click', () => {
+      document.getElementById('confirm-overlay').classList.remove('visible');
+    });
+
+    document.getElementById('confirm-reset').addEventListener('click', () => {
+      localStorage.removeItem('focus-app-v2');
+      state.taskState = {};
+      state.deferredThisSession = {};
+      loadDefaultConfig();
+      renderGoals();
+      renderToday();
+      document.getElementById('confirm-overlay').classList.remove('visible');
+      showToast('Reset to default');
     });
 
     // ============ NAVIGATION ============
