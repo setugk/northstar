@@ -640,6 +640,79 @@
       font-size: 11px;
     }
 
+    /* Lock Screen */
+    .lock-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: var(--bg);
+      z-index: 200;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 32px;
+    }
+
+    .lock-screen.hidden {
+      display: none;
+    }
+
+    .lock-title {
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      color: var(--text-primary);
+    }
+
+    .lock-subtitle {
+      font-size: 14px;
+      color: var(--text-tertiary);
+      margin-top: -20px;
+    }
+
+    .pin-inputs {
+      display: flex;
+      gap: 12px;
+    }
+
+    .pin-digit {
+      width: 48px;
+      height: 56px;
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text-primary);
+      font-size: 24px;
+      font-weight: 600;
+      text-align: center;
+      outline: none;
+      transition: border-color 0.15s ease;
+      -webkit-text-security: disc;
+    }
+
+    .pin-digit:focus {
+      border-color: var(--accent);
+    }
+
+    .pin-inputs.shake {
+      animation: shake 0.4s ease;
+    }
+
+    .pin-inputs.shake .pin-digit {
+      border-color: var(--danger);
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-8px); }
+      40% { transform: translateX(8px); }
+      60% { transform: translateX(-6px); }
+      80% { transform: translateX(6px); }
+    }
+
     /* Views */
     .view {
       display: none;
@@ -694,6 +767,18 @@
   </style>
 </head>
 <body>
+  <!-- Lock Screen -->
+  <div class="lock-screen" id="lock-screen">
+    <div class="lock-title">Northstar</div>
+    <div class="lock-subtitle">Enter passcode</div>
+    <div class="pin-inputs" id="pin-inputs">
+      <input class="pin-digit" type="tel" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off">
+      <input class="pin-digit" type="tel" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off">
+      <input class="pin-digit" type="tel" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off">
+      <input class="pin-digit" type="tel" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off">
+    </div>
+  </div>
+
   <div class="container">
     <!-- Goals View -->
     <div class="view active" id="view-goals">
@@ -789,6 +874,97 @@
   </nav>
 
   <script>
+    // ============ AUTH ============
+    const PASSCODE_HASH = '44c59909f17c296d6f2ec4a53efac3a951add75aa67616d9c5d9d2f5fbb44f04';
+    const AUTH_KEY = 'northstar-auth';
+    const AUTH_DURATION_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
+
+    async function hashPin(pin) {
+      const data = new TextEncoder().encode(pin);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    function checkAuth() {
+      const token = localStorage.getItem(AUTH_KEY);
+      if (!token) return false;
+      try {
+        const { expiry } = JSON.parse(token);
+        return Date.now() < expiry;
+      } catch {
+        return false;
+      }
+    }
+
+    async function authenticate(pin) {
+      const hash = await hashPin(pin);
+      if (hash === PASSCODE_HASH) {
+        localStorage.setItem(AUTH_KEY, JSON.stringify({ expiry: Date.now() + AUTH_DURATION_MS }));
+        return true;
+      }
+      return false;
+    }
+
+    function logout() {
+      localStorage.removeItem(AUTH_KEY);
+    }
+
+    function initLockScreen() {
+      const lockScreen = document.getElementById('lock-screen');
+      const container = document.querySelector('.container');
+      const bottomNav = document.querySelector('.bottom-nav');
+      const pinInputs = document.getElementById('pin-inputs');
+      const digits = pinInputs.querySelectorAll('.pin-digit');
+
+      if (checkAuth()) {
+        lockScreen.classList.add('hidden');
+        return;
+      }
+
+      // Hide app content while locked
+      container.style.display = 'none';
+      bottomNav.style.display = 'none';
+
+      digits[0].focus();
+
+      digits.forEach((input, i) => {
+        input.addEventListener('input', () => {
+          // Only allow digits
+          input.value = input.value.replace(/[^0-9]/g, '');
+          if (input.value && i < 3) {
+            digits[i + 1].focus();
+          }
+          // Auto-submit when all 4 digits entered
+          if (i === 3 && input.value) {
+            const pin = Array.from(digits).map(d => d.value).join('');
+            if (pin.length === 4) {
+              authenticate(pin).then(success => {
+                if (success) {
+                  lockScreen.classList.add('hidden');
+                  container.style.display = '';
+                  bottomNav.style.display = '';
+                } else {
+                  pinInputs.classList.add('shake');
+                  setTimeout(() => {
+                    pinInputs.classList.remove('shake');
+                    digits.forEach(d => d.value = '');
+                    digits[0].focus();
+                  }, 400);
+                }
+              });
+            }
+          }
+        });
+
+        input.addEventListener('keydown', (e) => {
+          if (e.key === 'Backspace' && !input.value && i > 0) {
+            digits[i - 1].focus();
+          }
+        });
+      });
+    }
+
     // ============ STATE ============
     let state = {
       quarter: 'Q1 2026',
@@ -1492,6 +1668,7 @@
     });
 
     // ============ INIT ============
+    initLockScreen();
     loadState();
     renderGoals();
     renderToday();
