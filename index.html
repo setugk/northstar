@@ -589,6 +589,55 @@
       flex: 1;
     }
 
+    .diff-errors {
+      padding: 12px 16px;
+      background: rgba(248, 113, 113, 0.1);
+      border-bottom: 1px solid var(--danger);
+    }
+
+    .diff-error-title {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--danger);
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    .diff-error-item {
+      font-size: 13px;
+      color: var(--danger);
+      padding: 4px 0;
+    }
+
+    .btn-disabled {
+      opacity: 0.4;
+      pointer-events: none;
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 90px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: var(--surface);
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 10px 20px;
+      font-size: 14px;
+      z-index: 300;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+
+    .toast.visible {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
     /* Quarter Badge */
     .quarter-badge {
       display: inline-block;
@@ -853,6 +902,8 @@
       </div>
     </div>
   </div>
+
+  <div class="toast" id="toast"></div>
 
   <nav class="bottom-nav">
     <button class="nav-item active" data-view="goals">
@@ -1387,30 +1438,54 @@
     }
 
     // ============ CONFIG PARSER ============
+    const VALID_TIMES = [15, 30, 60, 120];
+
+    function cleanText(text) {
+      return text.replace(/\s+/g, ' ').trim();
+    }
+
+    function parseTime(raw) {
+      const match = raw.match(/^(\d+)\s*(m|min|mins|minutes|h|hr|hrs|hour|hours)$/i);
+      if (!match) return null;
+      let minutes = parseInt(match[1]);
+      if (match[2].toLowerCase().startsWith('h')) {
+        minutes *= 60;
+      }
+      return minutes;
+    }
+
     function parseConfig(markdown) {
       const config = {
         quarter: 'Q1 2026',
-        goals: []
+        goals: [],
+        errors: []
       };
 
       const lines = markdown.split('\n');
       let currentGoal = null;
       let currentTask = null;
-      let inGoalsSection = false;
+      let inCodeBlock = false;
 
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
         const trimmed = line.trim();
 
+        // Skip code blocks (template examples in Reference section)
+        if (trimmed.startsWith('```')) {
+          inCodeBlock = !inCodeBlock;
+          continue;
+        }
+        if (inCodeBlock) continue;
+
         // Quarter
         const quarterMatch = trimmed.match(/^\*\*Quarter:\*\*\s*(.+)$/i) || trimmed.match(/^Quarter:\s*(.+)$/i);
         if (quarterMatch) {
-          config.quarter = quarterMatch[1].trim();
+          config.quarter = cleanText(quarterMatch[1]);
           continue;
         }
 
         // Goal header (e.g., "### 1.0 Goal Title" or "| 1 | Goal Title |")
-        const goalMatch = trimmed.match(/^###\s*(\d+\.0)\s+(.+)$/) || 
+        const goalMatch = trimmed.match(/^###\s*(\d+\.0)\s+(.+)$/) ||
                           trimmed.match(/^\|\s*(\d+)\s*\|\s*(.+?)\s*\|/);
         if (goalMatch) {
           if (currentTask && currentGoal) {
@@ -1422,16 +1497,15 @@
           const goalNum = goalMatch[1].includes('.') ? goalMatch[1] : `${goalMatch[1]}.0`;
           currentGoal = {
             id: goalNum,
-            title: goalMatch[2].replace(/\*\*/g, '').trim(),
+            title: cleanText(goalMatch[2].replace(/\*\*/g, '')),
             tasks: []
           };
           currentTask = null;
-          inGoalsSection = true;
           continue;
         }
 
-        // Task header (e.g., "#### 1.1 Task Title" or "- **1.1** Task Title")
-        const taskMatch = trimmed.match(/^####\s*(\d+\.\d+)\s+(.+)$/) ||
+        // Task header (e.g., "### 1.1 Task Title", "#### 1.1 Task Title", or "- **1.1** Task Title")
+        const taskMatch = trimmed.match(/^#{3,4}\s*(\d+\.\d+)\s+(.+)$/) ||
                           trimmed.match(/^-\s*\*\*(\d+\.\d+)\*\*\s+(.+)$/);
         if (taskMatch && currentGoal) {
           if (currentTask) {
@@ -1439,7 +1513,7 @@
           }
           currentTask = {
             id: taskMatch[1],
-            title: taskMatch[2].trim(),
+            title: cleanText(taskMatch[2].replace(/\*\*/g, '')),
             time: 30,
             links: [],
             notes: ''
@@ -1449,14 +1523,20 @@
 
         // Task properties
         if (currentTask) {
-          // Time
-          const timeMatch = trimmed.match(/^-?\s*\*?\*?Time\*?\*?:\s*(\d+)\s*(min|hour|hr)/i);
-          if (timeMatch) {
-            let time = parseInt(timeMatch[1]);
-            if (timeMatch[2].toLowerCase().startsWith('hour') || timeMatch[2].toLowerCase() === 'hr') {
-              time *= 60;
+          // Time — flexible format: 30m, 30 min, 1h, 2 hours, etc.
+          const timeLineMatch = trimmed.match(/^-?\s*\*?\*?Time\*?\*?:\s*(.+)$/i);
+          if (timeLineMatch) {
+            const rawTime = timeLineMatch[1].replace(/\*\*/g, '').trim();
+            if (rawTime) {
+              const minutes = parseTime(rawTime);
+              if (minutes === null) {
+                config.errors.push(`Task "${currentTask.title}": could not parse time "${rawTime}". Use a number followed by a unit (e.g. 30m, 1h, 60 min).`);
+              } else if (!VALID_TIMES.includes(minutes)) {
+                config.errors.push(`Task "${currentTask.title}": time "${rawTime}" resolves to ${minutes} min, which is not a valid option. Must be one of: 15 min, 30 min, 60 min (1h), 120 min (2h).`);
+              } else {
+                currentTask.time = minutes;
+              }
             }
-            currentTask.time = time;
             continue;
           }
 
@@ -1465,7 +1545,7 @@
                             trimmed.match(/^-?\s*\*?\*?Link\*?\*?:\s*(.+?)\s+(https?:\/\/.+)$/i);
           if (linkMatch) {
             currentTask.links.push({
-              label: linkMatch[1].trim(),
+              label: cleanText(linkMatch[1]),
               url: linkMatch[2].trim()
             });
             continue;
@@ -1474,7 +1554,7 @@
           // Notes
           const notesMatch = trimmed.match(/^-?\s*\*?\*?Notes?\*?\*?:\s*(.+)$/i);
           if (notesMatch) {
-            currentTask.notes = notesMatch[1].trim();
+            currentTask.notes = cleanText(notesMatch[1]);
             continue;
           }
         }
@@ -1487,6 +1567,15 @@
       if (currentGoal) {
         config.goals.push(currentGoal);
       }
+
+      // Auto-renumber goals and tasks sequentially
+      config.goals.forEach((goal, gIndex) => {
+        const goalNum = gIndex + 1;
+        goal.id = `${goalNum}.0`;
+        goal.tasks.forEach((task, tIndex) => {
+          task.id = `${goalNum}.${tIndex + 1}`;
+        });
+      });
 
       return config;
     }
@@ -1602,6 +1691,14 @@
       return html;
     }
 
+    // ============ TOAST ============
+    function showToast(message, duration = 2500) {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.classList.add('visible');
+      setTimeout(() => toast.classList.remove('visible'), duration);
+    }
+
     // ============ CONFIG UPLOAD ============
     let pendingConfig = null;
 
@@ -1617,13 +1714,27 @@
       reader.onload = (event) => {
         const content = event.target.result;
         pendingConfig = parseConfig(content);
-        
+
         const diff = generateDiff(
           { quarter: state.quarter, goals: state.goals },
           pendingConfig
         );
 
-        document.getElementById('diff-content').innerHTML = renderDiff(diff);
+        let errorHtml = '';
+        const confirmBtn = document.getElementById('diff-confirm');
+        if (pendingConfig.errors && pendingConfig.errors.length > 0) {
+          errorHtml = `
+            <div class="diff-errors">
+              <div class="diff-error-title">Errors</div>
+              ${pendingConfig.errors.map(e => `<div class="diff-error-item">${escapeHtml(e)}</div>`).join('')}
+            </div>
+          `;
+          confirmBtn.classList.add('btn-disabled');
+        } else {
+          confirmBtn.classList.remove('btn-disabled');
+        }
+
+        document.getElementById('diff-content').innerHTML = errorHtml + renderDiff(diff);
         document.getElementById('diff-overlay').classList.add('visible');
       };
       reader.readAsText(file);
@@ -1638,16 +1749,19 @@
     });
 
     document.getElementById('diff-confirm').addEventListener('click', () => {
-      if (pendingConfig) {
+      if (pendingConfig && (!pendingConfig.errors || pendingConfig.errors.length === 0)) {
+        const taskCount = pendingConfig.goals.reduce((sum, g) => sum + g.tasks.length, 0);
         state.quarter = pendingConfig.quarter;
         state.goals = pendingConfig.goals;
         // Keep taskState intact - matching IDs retain their completion status
         saveState();
         renderGoals();
         renderToday();
+        showToast(`Config loaded — ${pendingConfig.goals.length} goals, ${taskCount} tasks`);
       }
       pendingConfig = null;
       document.getElementById('diff-overlay').classList.remove('visible');
+      document.getElementById('diff-confirm').classList.remove('btn-disabled');
     });
 
     // ============ NAVIGATION ============
