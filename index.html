@@ -931,6 +931,60 @@
       80% { transform: translateX(6px); }
     }
 
+    /* Welcome Screen */
+    .welcome-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: var(--bg);
+      z-index: 150;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 24px;
+      padding: 20px;
+    }
+
+    .welcome-screen.hidden {
+      display: none;
+    }
+
+    .welcome-title {
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+
+    .welcome-subtitle {
+      font-size: 14px;
+      color: var(--text-tertiary);
+      margin-top: -12px;
+    }
+
+    .welcome-input {
+      width: 240px;
+      padding: 12px 16px;
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text-primary);
+      font-size: 16px;
+      text-align: center;
+      outline: none;
+      transition: border-color 0.15s ease;
+    }
+
+    .welcome-input:focus {
+      border-color: var(--accent);
+    }
+
+    .welcome-input::placeholder {
+      color: var(--text-tertiary);
+    }
+
     /* Views */
     .view {
       display: none;
@@ -1118,13 +1172,22 @@
     </div>
   </div>
 
+  <!-- Welcome Screen -->
+  <div class="welcome-screen hidden" id="welcome-screen">
+    <div class="welcome-title">Northstar</div>
+    <div class="welcome-subtitle">What should we call you?</div>
+    <input class="welcome-input" id="welcome-input" type="text" placeholder="Your name" maxlength="30" autocomplete="off">
+    <button class="btn btn-primary" id="welcome-btn">Continue</button>
+    <div style="font-size: 12px; color: var(--text-tertiary); margin-top: 8px;">Your data stays on this device. Nothing is sent to a server.</div>
+  </div>
+
   <div class="container">
     <!-- Goals View -->
     <div class="view" id="view-goals">
       <div class="header" style="display: flex; justify-content: space-between; align-items: flex-start;">
         <div>
           <div class="greeting" id="quarter-display">Q1 2026</div>
-          <div class="page-title">Goals</div>
+          <div class="page-title" id="goals-title">Goals</div>
         </div>
         <div class="header-actions">
           <button class="btn btn-ghost btn-sm" id="upload-btn">
@@ -1293,7 +1356,7 @@
 
   <script>
     // ============ VERSION ============
-    const APP_VERSION = '1.7';
+    const APP_VERSION = '1.8';
     document.getElementById('app-footer').innerHTML = `Northstar v${APP_VERSION} &copy; Setu Kathawate`;
 
     // ============ AUTH ============
@@ -1391,6 +1454,39 @@
         });
       });
     }
+
+    // ============ WELCOME ============
+    function getUserName() {
+      return localStorage.getItem('northstar-name') || '';
+    }
+
+    function showWelcome() {
+      const screen = document.getElementById('welcome-screen');
+      const input = document.getElementById('welcome-input');
+      screen.classList.remove('hidden');
+      input.value = '';
+      input.focus();
+    }
+
+    (function setupWelcome() {
+      const screen = document.getElementById('welcome-screen');
+      const input = document.getElementById('welcome-input');
+      const btn = document.getElementById('welcome-btn');
+
+      function submitName() {
+        const name = input.value.trim();
+        if (!name) return;
+        localStorage.setItem('northstar-name', name);
+        screen.classList.add('hidden');
+        renderGoals();
+        renderToday();
+      }
+
+      btn.addEventListener('click', submitName);
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') submitName();
+      });
+    })();
 
     // ============ STATE ============
     let state = {
@@ -1580,6 +1676,8 @@
       const container = document.getElementById('goals-list');
       const progressCard = document.getElementById('overall-progress-card');
       document.getElementById('quarter-display').textContent = state.quarter;
+      const goalsName = getUserName();
+      document.getElementById('goals-title').textContent = goalsName ? `${goalsName}'s Goals` : 'Goals';
 
       // Render overall progress
       const overall = getOverallProgress();
@@ -1686,6 +1784,8 @@
       let greeting = 'Good evening';
       if (hour < 12) greeting = 'Good morning';
       else if (hour < 17) greeting = 'Good afternoon';
+      const name = getUserName();
+      if (name) greeting += `, ${name}`;
       document.getElementById('greeting').textContent = greeting;
 
       const options = { weekday: 'long', month: 'short', day: 'numeric' };
@@ -2264,6 +2364,10 @@ Format tips:
         renderGoals();
         renderToday();
         showToast(`Config loaded — ${pendingConfig.goals.length} goals, ${taskCount} tasks`);
+        // Ask for name on first config upload
+        if (!getUserName()) {
+          setTimeout(() => showWelcome(), 600);
+        }
       }
       pendingConfig = null;
       document.getElementById('diff-overlay').classList.remove('visible');
