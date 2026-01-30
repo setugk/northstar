@@ -813,6 +813,13 @@
       font-size: 13px;
       color: var(--text-secondary);
     }
+
+    .app-footer {
+      text-align: center;
+      padding: 24px 0 8px;
+      font-size: 11px;
+      color: var(--text-tertiary);
+    }
   </style>
 </head>
 <body>
@@ -830,7 +837,7 @@
 
   <div class="container">
     <!-- Goals View -->
-    <div class="view active" id="view-goals">
+    <div class="view" id="view-goals">
       <div class="header" style="display: flex; justify-content: space-between; align-items: flex-start;">
         <div>
           <div class="greeting" id="quarter-display">Q1 2026</div>
@@ -858,7 +865,7 @@
     </div>
 
     <!-- Today View -->
-    <div class="view" id="view-today">
+    <div class="view active" id="view-today">
       <div class="header">
         <div class="greeting" id="greeting">Good evening</div>
         <div class="page-title" id="current-date">Thursday, Jan 29</div>
@@ -887,6 +894,8 @@
     </div>
 
 
+    <div class="app-footer">Northstar v1.0 &copy; Setu Kathawate</div>
+
   </div>
 
   <!-- Diff Preview Overlay -->
@@ -906,14 +915,14 @@
   <div class="toast" id="toast"></div>
 
   <nav class="bottom-nav">
-    <button class="nav-item active" data-view="goals">
+    <button class="nav-item" data-view="goals">
       <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
         <circle cx="12" cy="12" r="10"/>
         <path d="M12 8v8m-4-4h8"/>
       </svg>
       <span class="nav-label">Goals</span>
     </button>
-    <button class="nav-item" data-view="today">
+    <button class="nav-item active" data-view="today">
       <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
         <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
         <line x1="16" y1="2" x2="16" y2="6"/>
@@ -1167,6 +1176,17 @@
       return div.innerHTML;
     }
 
+    function linkLabel(url) {
+      try {
+        const host = new URL(url).hostname.replace('www.', '');
+        if (host.includes('youtube.com') || host.includes('youtu.be')) return 'Watch video';
+        if (host.includes('medium.com') || host.includes('substack.com')) return 'Read post';
+        return 'Read article';
+      } catch {
+        return 'Open link';
+      }
+    }
+
     function formatTime(minutes) {
       if (minutes < 60) return `${minutes} min`;
       if (minutes === 60) return '1 hour';
@@ -1239,7 +1259,8 @@
                         <span class="task-time">${formatTime(task.time)}</span>
                         ${task.links.map(link => `
                           <a href="${escapeHtml(link.url)}" target="_blank" class="task-link">
-                            🔗 ${escapeHtml(link.label)}
+                            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15,3 21,3 21,9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                            ${linkLabel(link.url)}
                           </a>
                         `).join('')}
                         ${ts.completed && ts.completedAt ? `<span class="task-date">✓ ${ts.completedAt}</span>` : ''}
@@ -1405,7 +1426,7 @@
                     <polyline points="15,3 21,3 21,9"/>
                     <line x1="10" y1="14" x2="21" y2="3"/>
                   </svg>
-                  <span class="suggestion-link-text">${escapeHtml(link.label)}</span>
+                  <span class="suggestion-link-text">${linkLabel(link.url)}</span>
                 </a>
               `).join('')}
             </div>
@@ -1540,9 +1561,9 @@
             continue;
           }
 
-          // Link
-          const linkMatch = trimmed.match(/^-?\s*\*?\*?Link\*?\*?:\s*\[(.+?)\]\((.+?)\)/i) ||
-                            trimmed.match(/^-?\s*\*?\*?Link\*?\*?:\s*(.+?)\s+(https?:\/\/.+)$/i);
+          // Link — handle **Link:** (colon inside bold) leaving ** before the value
+          const linkMatch = trimmed.match(/^-?\s*\*?\*?Link\*?\*?:\s*\*?\*?\s*\[(.+?)\]\((.+?)\)/i) ||
+                            trimmed.match(/^-?\s*\*?\*?Link\*?\*?:\s*\*?\*?\s*(.+?)\s+(https?:\/\/.+)$/i);
           if (linkMatch) {
             currentTask.links.push({
               label: cleanText(linkMatch[1]),
