@@ -1147,7 +1147,7 @@
             </div>
           </div>
         </div>
-        <input type="file" class="upload-input" id="upload-input" accept=".md,.txt">
+        <input type="file" class="upload-input" id="upload-input" accept=".md,.txt,.text">
       </div>
 
       <div class="card" id="overall-progress-card" style="margin-bottom: 20px;">
@@ -1235,15 +1235,22 @@
       <div class="help-modal-body">
         <div class="guide-step">
           <span class="guide-step-num">1</span>
-          <span class="guide-step-text">Download the config template and open it in any text editor</span>
+          <span class="guide-step-text">Download the template, or create a plain text file in any notes app</span>
         </div>
         <div class="guide-step">
           <span class="guide-step-num">2</span>
-          <span class="guide-step-text">Add your goals and tasks following the format in the template</span>
+          <span class="guide-step-text">Add your goals and tasks using this format:</span>
+        </div>
+        <div style="background: var(--bg); border-radius: var(--radius-sm); padding: 12px; margin: 0 0 12px 32px; font-family: monospace; font-size: 12px; color: var(--text-secondary); line-height: 1.7;">
+          Goal: Learn to cook<br><br>
+          Task: Pick 5 recipes<br>
+          Time: 30 min<br>
+          Link: https://example.com<br>
+          Notes: Start simple
         </div>
         <div class="guide-step">
           <span class="guide-step-num">3</span>
-          <span class="guide-step-text">Tap <strong>Upload</strong> to load your config into the app</span>
+          <span class="guide-step-text">Tap <strong>Upload</strong> to load it into the app</span>
         </div>
         <button class="btn btn-primary btn-block" id="download-template-btn" style="margin-top: 16px;">
           <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -1255,9 +1262,9 @@
         </button>
         <div class="guide-rules">
           <strong>Format tips:</strong><br>
-          Time: <code>15 min</code> <code>30m</code> <code>1h</code> <code>2 hours</code><br>
+          Time: <code>15 min</code> <code>30 min</code> <code>1h</code> <code>2h</code><br>
           Link and Notes are optional<br>
-          Task IDs are auto-renumbered on upload
+          Save as .md or .txt — both work
         </div>
       </div>
     </div>
@@ -1286,7 +1293,7 @@
 
   <script>
     // ============ VERSION ============
-    const APP_VERSION = '1.6';
+    const APP_VERSION = '1.7';
     document.getElementById('app-footer').innerHTML = `Northstar v${APP_VERSION} &copy; Setu Kathawate`;
 
     // ============ AUTH ============
@@ -1920,9 +1927,10 @@
           continue;
         }
 
-        // Goal header (e.g., "### 1.0 Goal Title" or "| 1 | Goal Title |")
+        // Goal header: "### 1.0 Title", "| 1 | Title |", or plain "Goal: Title"
         const goalMatch = trimmed.match(/^###\s*(\d+\.0)\s+(.+)$/) ||
-                          trimmed.match(/^\|\s*(\d+)\s*\|\s*(.+?)\s*\|/);
+                          trimmed.match(/^\|\s*(\d+)\s*\|\s*(.+?)\s*\|/) ||
+                          trimmed.match(/^Goal:\s*(.+)$/i);
         if (goalMatch) {
           if (currentTask && currentGoal) {
             currentGoal.tasks.push(currentTask);
@@ -1930,26 +1938,34 @@
           if (currentGoal) {
             config.goals.push(currentGoal);
           }
-          const goalNum = goalMatch[1].includes('.') ? goalMatch[1] : `${goalMatch[1]}.0`;
+          // Plain "Goal:" has no number — use placeholder, auto-renumber fixes it later
+          const isPlain = !goalMatch[2] && goalMatch[1];
+          const goalTitle = isPlain ? goalMatch[1] : goalMatch[2];
+          const goalNum = isPlain ? '0.0' : (goalMatch[1].includes('.') ? goalMatch[1] : `${goalMatch[1]}.0`);
           currentGoal = {
             id: goalNum,
-            title: cleanText(goalMatch[2].replace(/\*\*/g, '')),
+            title: cleanText(goalTitle.replace(/\*\*/g, '')),
             tasks: []
           };
           currentTask = null;
           continue;
         }
 
-        // Task header (e.g., "### 1.1 Task Title", "#### 1.1 Task Title", or "- **1.1** Task Title")
+        // Task header: "#### 1.1 Title", "### 1.1 Title", "- **1.1** Title", or plain "Task: Title"
         const taskMatch = trimmed.match(/^#{3,4}\s*(\d+\.\d+)\s+(.+)$/) ||
-                          trimmed.match(/^-\s*\*\*(\d+\.\d+)\*\*\s+(.+)$/);
+                          trimmed.match(/^-\s*\*\*(\d+\.\d+)\*\*\s+(.+)$/) ||
+                          trimmed.match(/^Task:\s*(.+)$/i);
         if (taskMatch && currentGoal) {
           if (currentTask) {
             currentGoal.tasks.push(currentTask);
           }
+          // Plain "Task:" has no number — use placeholder
+          const isPlain = !taskMatch[2] && taskMatch[1];
+          const taskTitle = isPlain ? taskMatch[1] : taskMatch[2];
+          const taskId = isPlain ? '0.0' : taskMatch[1];
           currentTask = {
-            id: taskMatch[1],
-            title: cleanText(taskMatch[2].replace(/\*\*/g, '')),
+            id: taskId,
+            title: cleanText(taskTitle.replace(/\*\*/g, '')),
             time: 30,
             links: [],
             notes: ''
@@ -1976,14 +1992,14 @@
             continue;
           }
 
-          // Link — handle **Link:** (colon inside bold) leaving ** before the value
+          // Link — markdown [label](url), "label url", or bare URL
           const linkMatch = trimmed.match(/^-?\s*\*?\*?Link\*?\*?:\s*\*?\*?\s*\[(.+?)\]\((.+?)\)/i) ||
-                            trimmed.match(/^-?\s*\*?\*?Link\*?\*?:\s*\*?\*?\s*(.+?)\s+(https?:\/\/.+)$/i);
+                            trimmed.match(/^-?\s*\*?\*?Link\*?\*?:\s*\*?\*?\s*(.+?)\s+(https?:\/\/.+)$/i) ||
+                            trimmed.match(/^-?\s*\*?\*?Link\*?\*?:\s*\*?\*?\s*(https?:\/\/\S+)$/i);
           if (linkMatch) {
-            currentTask.links.push({
-              label: cleanText(linkMatch[1]),
-              url: linkMatch[2].trim()
-            });
+            const url = (linkMatch[2] || linkMatch[1]).trim();
+            const label = linkMatch[2] ? cleanText(linkMatch[1]) : linkLabel(url);
+            currentTask.links.push({ label, url });
             continue;
           }
 
@@ -2151,49 +2167,33 @@
     });
 
     document.getElementById('download-template-btn').addEventListener('click', () => {
-      const template = `# Focus Config
+      const template = `Quarter: Q1 2026
 
-**Quarter:** Q1 2026
+Goal: Your first goal title
 
----
+Task: Your first task
+Time: 30 min
+Link: https://example.com
+Notes: Optional notes here
 
-## Goals & Tasks
+Task: Your second task
+Time: 1h
 
-### 1.0 [Goal 1 Title]
+Goal: Your second goal title
 
-#### 1.1 [Task title]
-- **Time:** 30 min
-- **Link:** [Label](https://url.com)
-- **Notes:**
+Task: Another task
+Time: 15 min
 
-#### 1.2 [Task title]
-- **Time:** 60 min
-- **Notes:**
-
----
-
-### 2.0 [Goal 2 Title]
-
-#### 2.1 [Task title]
-- **Time:** 30 min
-- **Notes:**
-
-#### 2.2 [Task title]
-- **Time:** 60 min
-- **Link:** [Label](https://url.com)
-- **Notes:**
+Task: One more task
+Time: 2h
+Link: https://example.com
+Notes: Add any helpful context
 
 ---
-
-### 3.0 [Goal 3 Title]
-
-#### 3.1 [Task title]
-- **Time:** 30 min
-- **Notes:**
-
-#### 3.2 [Task title]
-- **Time:** 60 min
-- **Notes:**
+Format tips:
+- Time options: 15 min, 30 min, 1h, 2h
+- Link and Notes lines are optional
+- Separate tasks with a blank line
 `;
       const blob = new Blob([template], { type: 'text/markdown' });
       const url = URL.createObjectURL(blob);
