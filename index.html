@@ -894,7 +894,7 @@
     </div>
 
 
-    <div class="app-footer">Northstar v1.0 &copy; Setu Kathawate</div>
+    <div class="app-footer" id="app-footer"></div>
 
   </div>
 
@@ -934,6 +934,10 @@
   </nav>
 
   <script>
+    // ============ VERSION ============
+    const APP_VERSION = '1.3';
+    document.getElementById('app-footer').innerHTML = `Northstar v${APP_VERSION} &copy; Setu Kathawate`;
+
     // ============ AUTH ============
     const PASSCODE_HASH = '44c59909f17c296d6f2ec4a53efac3a951add75aa67616d9c5d9d2f5fbb44f04';
     const AUTH_KEY = 'northstar-auth';
