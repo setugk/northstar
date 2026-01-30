@@ -1,0 +1,1500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#0a0a0b">
+  <title>Northstar</title>
+  <link rel="manifest" href="manifest.json">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg: #0a0a0b;
+      --surface: #18181b;
+      --surface-hover: #27272a;
+      --border: #3f3f46;
+      --text-primary: #ffffff;
+      --text-secondary: #a1a1aa;
+      --text-tertiary: #71717a;
+      --accent: #818cf8;
+      --accent-dim: rgba(129, 140, 248, 0.18);
+      --success: #4ade80;
+      --success-dim: rgba(74, 222, 128, 0.18);
+      --warning: #fbbf24;
+      --warning-dim: rgba(251, 191, 36, 0.12);
+      --danger: #f87171;
+      --radius: 12px;
+      --radius-sm: 8px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text-primary);
+      min-height: 100vh;
+      min-height: 100dvh;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .container {
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 24px 20px;
+      padding-bottom: 100px;
+    }
+
+    /* Header */
+    .header {
+      margin-bottom: 24px;
+    }
+
+    .greeting {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-bottom: 4px;
+    }
+
+    .page-title {
+      font-size: 24px;
+      font-weight: 600;
+      letter-spacing: -0.5px;
+    }
+
+    /* Cards */
+    .card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 16px;
+      border: 1px solid var(--border);
+      margin-bottom: 12px;
+    }
+
+    .card-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-tertiary);
+      margin-bottom: 10px;
+    }
+
+    /* Buttons */
+    .btn {
+      padding: 10px 16px;
+      border-radius: var(--radius-sm);
+      border: none;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .btn:active {
+      transform: scale(0.97);
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: white;
+    }
+
+    .btn-success {
+      background: var(--success);
+      color: #0a0a0b;
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--text-secondary);
+      border: 1px solid var(--border);
+    }
+
+    .btn-ghost:hover {
+      background: var(--surface-hover);
+    }
+
+    .btn-sm {
+      padding: 6px 12px;
+      font-size: 13px;
+    }
+
+    .btn-block {
+      width: 100%;
+    }
+
+    /* Section */
+    .section {
+      margin-bottom: 24px;
+    }
+
+    .section-header {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-tertiary);
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* Goal Cards */
+    .goal-card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      margin-bottom: 12px;
+      overflow: hidden;
+    }
+
+    .goal-header {
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+    }
+
+    .goal-number {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 600;
+      color: white;
+      flex-shrink: 0;
+    }
+
+    .goal-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .goal-title {
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--text-primary);
+      margin-bottom: 2px;
+    }
+
+    .goal-progress-text {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .goal-progress-bar {
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      margin-top: 6px;
+      overflow: hidden;
+    }
+
+    .goal-progress-fill {
+      height: 100%;
+      background: var(--success);
+      border-radius: 2px;
+      transition: width 0.3s ease;
+    }
+
+    .goal-chevron {
+      color: var(--text-tertiary);
+      transition: transform 0.2s ease;
+    }
+
+    .goal-card.expanded .goal-chevron {
+      transform: rotate(180deg);
+    }
+
+    .goal-tasks {
+      display: none;
+      border-top: 1px solid var(--border);
+    }
+
+    .goal-card.expanded .goal-tasks {
+      display: block;
+    }
+
+    /* Task Items */
+    .task-item {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .task-item:last-child {
+      border-bottom: none;
+    }
+
+    .task-checkbox {
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      border: 2px solid var(--border);
+      background: transparent;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+      transition: all 0.15s ease;
+    }
+
+    .task-checkbox.checked {
+      background: var(--success);
+      border-color: var(--success);
+    }
+
+    .task-checkbox svg {
+      width: 12px;
+      height: 12px;
+      opacity: 0;
+    }
+
+    .task-checkbox.checked svg {
+      opacity: 1;
+    }
+
+    .task-content {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .task-title {
+      font-size: 14px;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+
+    .task-item.completed .task-title {
+      color: var(--text-tertiary);
+      text-decoration: line-through;
+    }
+
+    .task-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .task-time {
+      font-size: 12px;
+      color: var(--text-tertiary);
+      background: var(--surface-hover);
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+
+    .task-link {
+      font-size: 12px;
+      color: var(--accent);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .task-link:hover {
+      text-decoration: underline;
+    }
+
+    .task-date {
+      font-size: 11px;
+      color: var(--success);
+    }
+
+    /* Today View - Selectors */
+    .selector-group {
+      margin-bottom: 20px;
+    }
+
+    .selector-label {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 10px;
+    }
+
+    .selector-options {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .selector-btn {
+      padding: 10px 16px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text-secondary);
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .selector-btn:hover {
+      background: var(--surface-hover);
+    }
+
+    .selector-btn.selected {
+      border-color: var(--accent);
+      background: var(--accent-dim);
+      color: var(--text-primary);
+    }
+
+    .selector-btn.goal-selector {
+      width: 100%;
+      text-align: left;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .selector-btn.goal-selector .goal-number {
+      width: 24px;
+      height: 24px;
+      font-size: 12px;
+    }
+
+    /* Task Suggestion Card */
+    .suggestion-card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      border: 1px solid var(--accent);
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+
+    .suggestion-header {
+      font-size: 12px;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 12px;
+    }
+
+    .suggestion-title {
+      font-size: 18px;
+      font-weight: 500;
+      color: var(--text-primary);
+      margin-bottom: 12px;
+      line-height: 1.4;
+    }
+
+    .suggestion-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .suggestion-time {
+      font-size: 13px;
+      color: var(--text-secondary);
+      background: var(--surface-hover);
+      padding: 4px 10px;
+      border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .suggestion-links {
+      margin-bottom: 16px;
+    }
+
+    .suggestion-link {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      background: var(--surface-hover);
+      border-radius: var(--radius-sm);
+      margin-bottom: 6px;
+      text-decoration: none;
+      color: var(--text-primary);
+      font-size: 14px;
+      transition: background 0.15s ease;
+    }
+
+    .suggestion-link:hover {
+      background: var(--border);
+    }
+
+    .suggestion-link svg {
+      color: var(--accent);
+      flex-shrink: 0;
+    }
+
+    .suggestion-link-text {
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .suggestion-notes {
+      font-size: 14px;
+      color: var(--text-secondary);
+      padding: 12px 0;
+      margin-bottom: 16px;
+      line-height: 1.5;
+      border-top: 1px solid var(--border);
+    }
+
+    .suggestion-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .suggestion-actions .btn {
+      flex: 1;
+    }
+
+    /* Empty / No Selection State */
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-tertiary);
+    }
+
+    .empty-state-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+      opacity: 0.5;
+    }
+
+    .empty-state-title {
+      font-size: 16px;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+
+    .empty-state-desc {
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    /* Config Upload */
+    .upload-input {
+      display: none;
+    }
+
+    /* Diff Preview */
+    .diff-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.85);
+      z-index: 100;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .diff-overlay.visible {
+      display: flex;
+    }
+
+    .diff-modal {
+      background: var(--surface);
+      border-radius: var(--radius);
+      max-width: 400px;
+      width: 100%;
+      max-height: 80vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .diff-header {
+      padding: 16px;
+      border-bottom: 1px solid var(--border);
+      font-weight: 600;
+      font-size: 16px;
+    }
+
+    .diff-content {
+      padding: 16px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .diff-section {
+      margin-bottom: 16px;
+    }
+
+    .diff-section:last-child {
+      margin-bottom: 0;
+    }
+
+    .diff-section-title {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-tertiary);
+      margin-bottom: 8px;
+    }
+
+    .diff-item {
+      font-size: 14px;
+      padding: 6px 10px;
+      border-radius: 6px;
+      margin-bottom: 4px;
+    }
+
+    .diff-item.added {
+      background: var(--success-dim);
+      color: var(--success);
+    }
+
+    .diff-item.removed {
+      background: rgba(248, 113, 113, 0.15);
+      color: var(--danger);
+    }
+
+    .diff-item.unchanged {
+      color: var(--text-tertiary);
+    }
+
+    .diff-footer {
+      padding: 16px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 10px;
+    }
+
+    .diff-footer .btn {
+      flex: 1;
+    }
+
+    /* Quarter Badge */
+    .quarter-badge {
+      display: inline-block;
+      padding: 4px 10px;
+      background: var(--accent-dim);
+      color: var(--accent);
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    /* Bottom Nav */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: center;
+      gap: 32px;
+      padding: 12px 20px;
+      padding-bottom: max(12px, env(safe-area-inset-bottom));
+    }
+
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      background: none;
+      border: none;
+      color: var(--text-tertiary);
+      cursor: pointer;
+      padding: 4px 16px;
+    }
+
+    .nav-item.active {
+      color: var(--accent);
+    }
+
+    .nav-item svg {
+      width: 24px;
+      height: 24px;
+    }
+
+    .nav-label {
+      font-size: 11px;
+    }
+
+    /* Views */
+    .view {
+      display: none;
+    }
+
+    .view.active {
+      display: block;
+    }
+
+    /* All tasks complete state */
+    .complete-state {
+      text-align: center;
+      padding: 40px 20px;
+    }
+
+    .complete-state-icon {
+      font-size: 64px;
+      margin-bottom: 16px;
+    }
+
+    .complete-state-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--success);
+      margin-bottom: 8px;
+    }
+
+    .complete-state-desc {
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    /* No matching tasks */
+    .no-match-state {
+      background: var(--warning-dim);
+      border: 1px solid var(--warning);
+      border-radius: var(--radius);
+      padding: 20px;
+      text-align: center;
+    }
+
+    .no-match-state-title {
+      font-size: 15px;
+      color: var(--warning);
+      margin-bottom: 6px;
+    }
+
+    .no-match-state-desc {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Goals View -->
+    <div class="view active" id="view-goals">
+      <div class="header" style="display: flex; justify-content: space-between; align-items: flex-start;">
+        <div>
+          <div class="greeting" id="quarter-display">Q1 2026</div>
+          <div class="page-title">Goals</div>
+        </div>
+        <button class="btn btn-ghost btn-sm" id="upload-btn">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+            <polyline points="17,8 12,3 7,8"/>
+            <line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+          Upload
+        </button>
+        <input type="file" class="upload-input" id="upload-input" accept=".md,.txt">
+      </div>
+
+      <div class="card" id="overall-progress-card" style="margin-bottom: 20px;">
+        <!-- Dynamic content -->
+      </div>
+
+      <div class="section-header">Focus Areas</div>
+      <div id="goals-list">
+        <!-- Dynamic content -->
+      </div>
+    </div>
+
+    <!-- Today View -->
+    <div class="view" id="view-today">
+      <div class="header">
+        <div class="greeting" id="greeting">Good evening</div>
+        <div class="page-title" id="current-date">Thursday, Jan 29</div>
+      </div>
+
+      <div class="selector-group">
+        <div class="selector-label">What goal do you want to work on?</div>
+        <div class="selector-options" id="goal-selector">
+          <!-- Dynamic content -->
+        </div>
+      </div>
+
+      <div class="selector-group">
+        <div class="selector-label">How much time do you have?</div>
+        <div class="selector-options" id="time-selector">
+          <button class="selector-btn" data-time="15">15 min</button>
+          <button class="selector-btn" data-time="30">30 min</button>
+          <button class="selector-btn" data-time="60">1 hour</button>
+          <button class="selector-btn" data-time="120">2 hours</button>
+        </div>
+      </div>
+
+      <div id="task-suggestion">
+        <!-- Dynamic content -->
+      </div>
+    </div>
+
+
+  </div>
+
+  <!-- Diff Preview Overlay -->
+  <div class="diff-overlay" id="diff-overlay">
+    <div class="diff-modal">
+      <div class="diff-header">Review Changes</div>
+      <div class="diff-content" id="diff-content">
+        <!-- Dynamic content -->
+      </div>
+      <div class="diff-footer">
+        <button class="btn btn-ghost" id="diff-cancel">Cancel</button>
+        <button class="btn btn-primary" id="diff-confirm">Apply Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <nav class="bottom-nav">
+    <button class="nav-item active" data-view="goals">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="10"/>
+        <path d="M12 8v8m-4-4h8"/>
+      </svg>
+      <span class="nav-label">Goals</span>
+    </button>
+    <button class="nav-item" data-view="today">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+        <line x1="16" y1="2" x2="16" y2="6"/>
+        <line x1="8" y1="2" x2="8" y2="6"/>
+        <line x1="3" y1="10" x2="21" y2="10"/>
+      </svg>
+      <span class="nav-label">Today</span>
+    </button>
+  </nav>
+
+  <script>
+    // ============ STATE ============
+    let state = {
+      quarter: 'Q1 2026',
+      goals: [],
+      // Task completion state: { "1.1": { completed: true, completedAt: "2026-01-29" }, ... }
+      taskState: {},
+      // For "defer" - track order per goal session
+      deferredThisSession: {}
+    };
+
+    // ============ LOAD/SAVE ============
+    function loadState() {
+      const saved = localStorage.getItem('focus-app-v2');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        state = { ...state, ...parsed };
+      }
+      
+      // Load default config if no goals
+      if (state.goals.length === 0) {
+        loadDefaultConfig();
+      }
+    }
+
+    function saveState() {
+      localStorage.setItem('focus-app-v2', JSON.stringify(state));
+    }
+
+    function loadDefaultConfig() {
+      state.quarter = 'Q1 2026';
+      state.goals = [
+        {
+          id: '1.0',
+          title: 'Become the Agentic UX SME',
+          tasks: [
+            {
+              id: '1.1',
+              title: 'Read: "Designing Agentic UX" article',
+              time: 30,
+              links: [{ label: 'Article', url: 'https://example.com/agentic-ux' }],
+              notes: 'Focus on the section about user mental models'
+            },
+            {
+              id: '1.2',
+              title: 'Watch: Nielsen Norman Group video on AI patterns',
+              time: 60,
+              links: [{ label: 'YouTube', url: 'https://youtube.com/example' }],
+              notes: ''
+            },
+            {
+              id: '1.3',
+              title: 'Write internal post: Key takeaways from Agentic UX research',
+              time: 120,
+              links: [],
+              notes: 'Share in #design-team channel after'
+            }
+          ]
+        },
+        {
+          id: '2.0',
+          title: 'Push code to Harmony',
+          tasks: [
+            {
+              id: '2.1',
+              title: 'Complete Harmony setup tutorial',
+              time: 60,
+              links: [{ label: 'Docs', url: 'https://harmony.example.com/docs' }],
+              notes: 'Ask David if stuck on auth step'
+            },
+            {
+              id: '2.2',
+              title: 'Make first PR: Fix button padding',
+              time: 30,
+              links: [],
+              notes: 'Low-stakes first PR to learn the workflow'
+            }
+          ]
+        },
+        {
+          id: '3.0',
+          title: 'Ship dashboard fast with AI',
+          tasks: [
+            {
+              id: '3.1',
+              title: 'Document current AI tools being used',
+              time: 30,
+              links: [],
+              notes: 'Create shared doc with partner'
+            },
+            {
+              id: '3.2',
+              title: 'Experiment: Use Claude for component specs',
+              time: 60,
+              links: [],
+              notes: 'Try generating specs for the filter panel'
+            }
+          ]
+        }
+      ];
+      saveState();
+    }
+
+    // ============ HELPERS ============
+    function getTaskState(taskId) {
+      return state.taskState[taskId] || { completed: false, completedAt: null };
+    }
+
+    function setTaskCompleted(taskId, completed) {
+      if (completed) {
+        state.taskState[taskId] = {
+          completed: true,
+          completedAt: new Date().toISOString().split('T')[0]
+        };
+      } else {
+        state.taskState[taskId] = { completed: false, completedAt: null };
+      }
+      saveState();
+    }
+
+    function getGoalProgress(goal) {
+      const total = goal.tasks.length;
+      if (total === 0) return { completed: 0, total: 0, percent: 0 };
+      const completed = goal.tasks.filter(t => getTaskState(t.id).completed).length;
+      return {
+        completed,
+        total,
+        percent: Math.round((completed / total) * 100)
+      };
+    }
+
+    function getOverallProgress() {
+      let totalTasks = 0;
+      let completedTasks = 0;
+      state.goals.forEach(g => {
+        const p = getGoalProgress(g);
+        totalTasks += p.total;
+        completedTasks += p.completed;
+      });
+      return {
+        completed: completedTasks,
+        total: totalTasks,
+        percent: totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0
+      };
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function formatTime(minutes) {
+      if (minutes < 60) return `${minutes} min`;
+      if (minutes === 60) return '1 hour';
+      if (minutes === 120) return '2 hours';
+      return `${minutes} min`;
+    }
+
+    // ============ RENDER: GOALS VIEW ============
+    function renderGoals() {
+      const container = document.getElementById('goals-list');
+      const progressCard = document.getElementById('overall-progress-card');
+      document.getElementById('quarter-display').textContent = state.quarter;
+
+      // Render overall progress
+      const overall = getOverallProgress();
+      progressCard.innerHTML = `
+        <div class="card-label">Overall Progress</div>
+        <div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px;">
+          <span style="font-size: 32px; font-weight: 700; color: var(--success);">${overall.percent}%</span>
+          <span style="font-size: 14px; color: var(--text-secondary);">${overall.completed}/${overall.total} tasks</span>
+        </div>
+        <div class="goal-progress-bar" style="height: 6px;">
+          <div class="goal-progress-fill" style="width: ${overall.percent}%"></div>
+        </div>
+      `;
+
+      if (state.goals.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">📋</div>
+            <div class="empty-state-title">No goals configured</div>
+            <div class="empty-state-desc">Upload a config.md file to get started</div>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = state.goals.map((goal, index) => {
+        const progress = getGoalProgress(goal);
+        return `
+          <div class="goal-card" data-goal-index="${index}">
+            <div class="goal-header">
+              <div class="goal-number">${index + 1}</div>
+              <div class="goal-info">
+                <div class="goal-title">${escapeHtml(goal.title)}</div>
+                <div class="goal-progress-text">${progress.completed}/${progress.total} tasks · ${progress.percent}%</div>
+                <div class="goal-progress-bar">
+                  <div class="goal-progress-fill" style="width: ${progress.percent}%"></div>
+                </div>
+              </div>
+              <div class="goal-chevron">
+                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <polyline points="6,9 12,15 18,9"/>
+                </svg>
+              </div>
+            </div>
+            <div class="goal-tasks">
+              ${goal.tasks.map(task => {
+                const ts = getTaskState(task.id);
+                return `
+                  <div class="task-item ${ts.completed ? 'completed' : ''}" data-task-id="${task.id}">
+                    <button class="task-checkbox ${ts.completed ? 'checked' : ''}">
+                      <svg fill="none" stroke="white" stroke-width="3" viewBox="0 0 24 24">
+                        <polyline points="20,6 9,17 4,12"/>
+                      </svg>
+                    </button>
+                    <div class="task-content">
+                      <div class="task-title">${escapeHtml(task.title)}</div>
+                      <div class="task-meta">
+                        <span class="task-time">${formatTime(task.time)}</span>
+                        ${task.links.map(link => `
+                          <a href="${escapeHtml(link.url)}" target="_blank" class="task-link">
+                            🔗 ${escapeHtml(link.label)}
+                          </a>
+                        `).join('')}
+                        ${ts.completed && ts.completedAt ? `<span class="task-date">✓ ${ts.completedAt}</span>` : ''}
+                      </div>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Event: toggle goal expand
+      container.querySelectorAll('.goal-header').forEach(header => {
+        header.addEventListener('click', () => {
+          header.closest('.goal-card').classList.toggle('expanded');
+        });
+      });
+
+      // Event: toggle task complete
+      container.querySelectorAll('.task-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const taskItem = checkbox.closest('.task-item');
+          const taskId = taskItem.dataset.taskId;
+          const currentState = getTaskState(taskId);
+          setTaskCompleted(taskId, !currentState.completed);
+          renderGoals();
+        });
+      });
+    }
+
+    // ============ RENDER: TODAY VIEW ============
+    let selectedGoalIndex = null;
+    let selectedTime = null;
+    let currentSuggestedTask = null;
+
+    function renderToday() {
+      // Greeting
+      const hour = new Date().getHours();
+      let greeting = 'Good evening';
+      if (hour < 12) greeting = 'Good morning';
+      else if (hour < 17) greeting = 'Good afternoon';
+      document.getElementById('greeting').textContent = greeting;
+
+      const options = { weekday: 'long', month: 'short', day: 'numeric' };
+      document.getElementById('current-date').textContent = 
+        new Date().toLocaleDateString('en-US', options);
+
+      // Goal selector
+      const goalSelector = document.getElementById('goal-selector');
+      goalSelector.innerHTML = state.goals.map((goal, index) => `
+        <button class="selector-btn goal-selector ${selectedGoalIndex === index ? 'selected' : ''}" data-goal-index="${index}">
+          <span class="goal-number">${index + 1}</span>
+          <span>${escapeHtml(goal.title)}</span>
+        </button>
+      `).join('');
+
+      goalSelector.querySelectorAll('.goal-selector').forEach(btn => {
+        btn.addEventListener('click', () => {
+          selectedGoalIndex = parseInt(btn.dataset.goalIndex);
+          state.deferredThisSession = {}; // Reset deferred on goal change
+          renderToday();
+          renderTaskSuggestion();
+        });
+      });
+
+      // Time selector
+      const timeSelector = document.getElementById('time-selector');
+      timeSelector.querySelectorAll('.selector-btn').forEach(btn => {
+        btn.classList.toggle('selected', parseInt(btn.dataset.time) === selectedTime);
+        btn.onclick = () => {
+          selectedTime = parseInt(btn.dataset.time);
+          renderToday();
+          renderTaskSuggestion();
+        };
+      });
+
+      renderTaskSuggestion();
+    }
+
+    function renderTaskSuggestion() {
+      const container = document.getElementById('task-suggestion');
+
+      if (selectedGoalIndex === null || selectedTime === null) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">👆</div>
+            <div class="empty-state-title">Select a goal and time</div>
+            <div class="empty-state-desc">I'll suggest a task for you to work on</div>
+          </div>
+        `;
+        return;
+      }
+
+      const goal = state.goals[selectedGoalIndex];
+      if (!goal) return;
+
+      // Get incomplete tasks that fit the time
+      const incompleteTasks = goal.tasks.filter(t => {
+        const ts = getTaskState(t.id);
+        return !ts.completed && t.time <= selectedTime;
+      });
+
+      if (incompleteTasks.length === 0) {
+        // Check if all tasks are complete or just none match time
+        const allComplete = goal.tasks.every(t => getTaskState(t.id).completed);
+        
+        if (allComplete) {
+          container.innerHTML = `
+            <div class="complete-state">
+              <div class="complete-state-icon">🎉</div>
+              <div class="complete-state-title">All tasks complete!</div>
+              <div class="complete-state-desc">You've finished everything for "${escapeHtml(goal.title)}"</div>
+            </div>
+          `;
+        } else {
+          container.innerHTML = `
+            <div class="no-match-state">
+              <div class="no-match-state-title">No tasks fit this time</div>
+              <div class="no-match-state-desc">Try selecting more time, or check the Goals tab for remaining tasks</div>
+            </div>
+          `;
+        }
+        return;
+      }
+
+      // Pick a random task (considering deferred ones go to bottom)
+      const deferredKey = `${goal.id}`;
+      const deferredIds = state.deferredThisSession[deferredKey] || [];
+      
+      // Prioritize non-deferred tasks
+      let taskPool = incompleteTasks.filter(t => !deferredIds.includes(t.id));
+      if (taskPool.length === 0) {
+        // All have been deferred, reset and pick from all
+        state.deferredThisSession[deferredKey] = [];
+        taskPool = incompleteTasks;
+      }
+
+      const task = taskPool[Math.floor(Math.random() * taskPool.length)];
+      currentSuggestedTask = task;
+
+      container.innerHTML = `
+        <div class="suggestion-card">
+          <div class="suggestion-header">Suggested Task</div>
+          <div class="suggestion-title">${escapeHtml(task.title)}</div>
+          <div class="suggestion-meta">
+            <span class="suggestion-time">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M12 6v6l4 2"/>
+              </svg>
+              ${formatTime(task.time)}
+            </span>
+          </div>
+          ${task.links.length > 0 ? `
+            <div class="suggestion-links">
+              ${task.links.map(link => `
+                <a href="${escapeHtml(link.url)}" target="_blank" class="suggestion-link">
+                  <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/>
+                    <polyline points="15,3 21,3 21,9"/>
+                    <line x1="10" y1="14" x2="21" y2="3"/>
+                  </svg>
+                  <span class="suggestion-link-text">${escapeHtml(link.label)}</span>
+                </a>
+              `).join('')}
+            </div>
+          ` : ''}
+          ${task.notes ? `
+            <div class="suggestion-notes">${escapeHtml(task.notes)}</div>
+          ` : ''}
+          <div class="suggestion-actions">
+            <button class="btn btn-ghost" id="defer-btn">Not now</button>
+            <button class="btn btn-success" id="complete-btn">Done ✓</button>
+          </div>
+        </div>
+      `;
+
+      document.getElementById('defer-btn').addEventListener('click', () => {
+        const deferredKey = `${goal.id}`;
+        if (!state.deferredThisSession[deferredKey]) {
+          state.deferredThisSession[deferredKey] = [];
+        }
+        state.deferredThisSession[deferredKey].push(task.id);
+        renderTaskSuggestion();
+      });
+
+      document.getElementById('complete-btn').addEventListener('click', () => {
+        setTaskCompleted(task.id, true);
+        renderTaskSuggestion();
+        renderGoals();
+        renderProgress();
+      });
+    }
+
+    // ============ CONFIG PARSER ============
+    function parseConfig(markdown) {
+      const config = {
+        quarter: 'Q1 2026',
+        goals: []
+      };
+
+      const lines = markdown.split('\n');
+      let currentGoal = null;
+      let currentTask = null;
+      let inGoalsSection = false;
+
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        const trimmed = line.trim();
+
+        // Quarter
+        const quarterMatch = trimmed.match(/^\*\*Quarter:\*\*\s*(.+)$/i) || trimmed.match(/^Quarter:\s*(.+)$/i);
+        if (quarterMatch) {
+          config.quarter = quarterMatch[1].trim();
+          continue;
+        }
+
+        // Goal header (e.g., "### 1.0 Goal Title" or "| 1 | Goal Title |")
+        const goalMatch = trimmed.match(/^###\s*(\d+\.0)\s+(.+)$/) || 
+                          trimmed.match(/^\|\s*(\d+)\s*\|\s*(.+?)\s*\|/);
+        if (goalMatch) {
+          if (currentTask && currentGoal) {
+            currentGoal.tasks.push(currentTask);
+          }
+          if (currentGoal) {
+            config.goals.push(currentGoal);
+          }
+          const goalNum = goalMatch[1].includes('.') ? goalMatch[1] : `${goalMatch[1]}.0`;
+          currentGoal = {
+            id: goalNum,
+            title: goalMatch[2].replace(/\*\*/g, '').trim(),
+            tasks: []
+          };
+          currentTask = null;
+          inGoalsSection = true;
+          continue;
+        }
+
+        // Task header (e.g., "#### 1.1 Task Title" or "- **1.1** Task Title")
+        const taskMatch = trimmed.match(/^####\s*(\d+\.\d+)\s+(.+)$/) ||
+                          trimmed.match(/^-\s*\*\*(\d+\.\d+)\*\*\s+(.+)$/);
+        if (taskMatch && currentGoal) {
+          if (currentTask) {
+            currentGoal.tasks.push(currentTask);
+          }
+          currentTask = {
+            id: taskMatch[1],
+            title: taskMatch[2].trim(),
+            time: 30,
+            links: [],
+            notes: ''
+          };
+          continue;
+        }
+
+        // Task properties
+        if (currentTask) {
+          // Time
+          const timeMatch = trimmed.match(/^-?\s*\*?\*?Time\*?\*?:\s*(\d+)\s*(min|hour|hr)/i);
+          if (timeMatch) {
+            let time = parseInt(timeMatch[1]);
+            if (timeMatch[2].toLowerCase().startsWith('hour') || timeMatch[2].toLowerCase() === 'hr') {
+              time *= 60;
+            }
+            currentTask.time = time;
+            continue;
+          }
+
+          // Link
+          const linkMatch = trimmed.match(/^-?\s*\*?\*?Link\*?\*?:\s*\[(.+?)\]\((.+?)\)/i) ||
+                            trimmed.match(/^-?\s*\*?\*?Link\*?\*?:\s*(.+?)\s+(https?:\/\/.+)$/i);
+          if (linkMatch) {
+            currentTask.links.push({
+              label: linkMatch[1].trim(),
+              url: linkMatch[2].trim()
+            });
+            continue;
+          }
+
+          // Notes
+          const notesMatch = trimmed.match(/^-?\s*\*?\*?Notes?\*?\*?:\s*(.+)$/i);
+          if (notesMatch) {
+            currentTask.notes = notesMatch[1].trim();
+            continue;
+          }
+        }
+      }
+
+      // Don't forget the last task and goal
+      if (currentTask && currentGoal) {
+        currentGoal.tasks.push(currentTask);
+      }
+      if (currentGoal) {
+        config.goals.push(currentGoal);
+      }
+
+      return config;
+    }
+
+    function generateDiff(oldConfig, newConfig) {
+      const diff = {
+        quarterChanged: oldConfig.quarter !== newConfig.quarter,
+        oldQuarter: oldConfig.quarter,
+        newQuarter: newConfig.quarter,
+        goalsAdded: [],
+        goalsRemoved: [],
+        goalsUnchanged: [],
+        tasksAdded: [],
+        tasksRemoved: []
+      };
+
+      const oldGoalIds = new Set(oldConfig.goals.map(g => g.id));
+      const newGoalIds = new Set(newConfig.goals.map(g => g.id));
+
+      newConfig.goals.forEach(g => {
+        if (!oldGoalIds.has(g.id)) {
+          diff.goalsAdded.push(g);
+        } else {
+          diff.goalsUnchanged.push(g);
+        }
+      });
+
+      oldConfig.goals.forEach(g => {
+        if (!newGoalIds.has(g.id)) {
+          diff.goalsRemoved.push(g);
+        }
+      });
+
+      // Task-level diff
+      const oldTaskIds = new Set();
+      oldConfig.goals.forEach(g => g.tasks.forEach(t => oldTaskIds.add(t.id)));
+      
+      const newTaskIds = new Set();
+      newConfig.goals.forEach(g => g.tasks.forEach(t => newTaskIds.add(t.id)));
+
+      newConfig.goals.forEach(g => {
+        g.tasks.forEach(t => {
+          if (!oldTaskIds.has(t.id)) {
+            diff.tasksAdded.push({ goal: g.title, task: t });
+          }
+        });
+      });
+
+      oldConfig.goals.forEach(g => {
+        g.tasks.forEach(t => {
+          if (!newTaskIds.has(t.id)) {
+            diff.tasksRemoved.push({ goal: g.title, task: t });
+          }
+        });
+      });
+
+      return diff;
+    }
+
+    function renderDiff(diff) {
+      let html = '';
+
+      if (diff.quarterChanged) {
+        html += `
+          <div class="diff-section">
+            <div class="diff-section-title">Quarter</div>
+            <div class="diff-item removed">${escapeHtml(diff.oldQuarter)}</div>
+            <div class="diff-item added">${escapeHtml(diff.newQuarter)}</div>
+          </div>
+        `;
+      }
+
+      if (diff.goalsAdded.length > 0) {
+        html += `
+          <div class="diff-section">
+            <div class="diff-section-title">New Goals</div>
+            ${diff.goalsAdded.map(g => `<div class="diff-item added">+ ${escapeHtml(g.title)}</div>`).join('')}
+          </div>
+        `;
+      }
+
+      if (diff.goalsRemoved.length > 0) {
+        html += `
+          <div class="diff-section">
+            <div class="diff-section-title">Removed Goals</div>
+            ${diff.goalsRemoved.map(g => `<div class="diff-item removed">- ${escapeHtml(g.title)}</div>`).join('')}
+          </div>
+        `;
+      }
+
+      if (diff.tasksAdded.length > 0) {
+        html += `
+          <div class="diff-section">
+            <div class="diff-section-title">New Tasks</div>
+            ${diff.tasksAdded.map(t => `<div class="diff-item added">+ ${escapeHtml(t.task.title)}</div>`).join('')}
+          </div>
+        `;
+      }
+
+      if (diff.tasksRemoved.length > 0) {
+        html += `
+          <div class="diff-section">
+            <div class="diff-section-title">Removed Tasks</div>
+            ${diff.tasksRemoved.map(t => `<div class="diff-item removed">- ${escapeHtml(t.task.title)}</div>`).join('')}
+          </div>
+        `;
+      }
+
+      if (!html) {
+        html = '<div class="diff-item unchanged">No changes detected</div>';
+      }
+
+      return html;
+    }
+
+    // ============ CONFIG UPLOAD ============
+    let pendingConfig = null;
+
+    document.getElementById('upload-btn').addEventListener('click', () => {
+      document.getElementById('upload-input').click();
+    });
+
+    document.getElementById('upload-input').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const content = event.target.result;
+        pendingConfig = parseConfig(content);
+        
+        const diff = generateDiff(
+          { quarter: state.quarter, goals: state.goals },
+          pendingConfig
+        );
+
+        document.getElementById('diff-content').innerHTML = renderDiff(diff);
+        document.getElementById('diff-overlay').classList.add('visible');
+      };
+      reader.readAsText(file);
+      
+      // Reset input so same file can be uploaded again
+      e.target.value = '';
+    });
+
+    document.getElementById('diff-cancel').addEventListener('click', () => {
+      pendingConfig = null;
+      document.getElementById('diff-overlay').classList.remove('visible');
+    });
+
+    document.getElementById('diff-confirm').addEventListener('click', () => {
+      if (pendingConfig) {
+        state.quarter = pendingConfig.quarter;
+        state.goals = pendingConfig.goals;
+        // Keep taskState intact - matching IDs retain their completion status
+        saveState();
+        renderGoals();
+        renderToday();
+      }
+      pendingConfig = null;
+      document.getElementById('diff-overlay').classList.remove('visible');
+    });
+
+    // ============ NAVIGATION ============
+    document.querySelectorAll('.nav-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const view = item.dataset.view;
+        
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        item.classList.add('active');
+        
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        document.getElementById(`view-${view}`).classList.add('active');
+
+        // Re-render active view
+        if (view === 'goals') renderGoals();
+        if (view === 'today') renderToday();
+      });
+    });
+
+    // ============ INIT ============
+    loadState();
+    renderGoals();
+    renderToday();
+  </script>
+</body>
+</html>
