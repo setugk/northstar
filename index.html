@@ -1053,13 +1053,6 @@
   <div class="toast" id="toast"></div>
 
   <nav class="bottom-nav">
-    <button class="nav-item" data-view="goals">
-      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-        <circle cx="12" cy="12" r="10"/>
-        <path d="M12 8v8m-4-4h8"/>
-      </svg>
-      <span class="nav-label">Goals</span>
-    </button>
     <button class="nav-item active" data-view="today">
       <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
         <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
@@ -1068,6 +1061,13 @@
         <line x1="3" y1="10" x2="21" y2="10"/>
       </svg>
       <span class="nav-label">Today</span>
+    </button>
+    <button class="nav-item" data-view="goals">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="10"/>
+        <path d="M12 8v8m-4-4h8"/>
+      </svg>
+      <span class="nav-label">Goals</span>
     </button>
   </nav>
 
@@ -1206,21 +1206,21 @@
               id: '1.1',
               title: 'Watch a TED talk and note 3 techniques the speaker uses',
               time: 15,
-              links: [],
+              links: [{ label: 'TED Talks', url: 'https://www.ted.com/talks' }],
               notes: 'Pay attention to pacing, pauses, and storytelling'
             },
             {
               id: '1.2',
               title: 'Practice a 2-minute elevator pitch and record yourself',
               time: 30,
-              links: [],
+              links: [{ label: 'Guide', url: 'https://hbr.org/2018/10/the-art-of-the-elevator-pitch' }],
               notes: 'Review the recording and note areas to improve'
             },
             {
               id: '1.3',
               title: 'Sign up for a local Toastmasters meeting',
               time: 15,
-              links: [],
+              links: [{ label: 'Toastmasters', url: 'https://www.toastmasters.org/find-a-club' }],
               notes: ''
             }
           ]
@@ -1233,7 +1233,7 @@
               id: '2.1',
               title: 'Pick 3 books and add them to a reading list',
               time: 15,
-              links: [],
+              links: [{ label: 'Goodreads', url: 'https://www.goodreads.com/list/popular_lists' }],
               notes: 'Mix of fiction and non-fiction'
             },
             {
@@ -1247,7 +1247,7 @@
               id: '2.3',
               title: 'Write a short review of the first book',
               time: 60,
-              links: [],
+              links: [{ label: 'Goodreads', url: 'https://www.goodreads.com' }],
               notes: 'Share it with a friend to start a conversation'
             }
           ]
@@ -1260,14 +1260,14 @@
               id: '3.1',
               title: 'Browse recipes and pick 5 to try this quarter',
               time: 30,
-              links: [],
+              links: [{ label: 'Budget Bytes', url: 'https://www.budgetbytes.com' }],
               notes: 'Aim for a range of difficulty levels'
             },
             {
               id: '3.2',
               title: 'Buy ingredients and cook recipe #1',
               time: 120,
-              links: [],
+              links: [{ label: 'YouTube', url: 'https://www.youtube.com/@JoshuaWeissman' }],
               notes: 'Take a photo of the result'
             },
             {
