@@ -788,23 +788,25 @@
     .toast {
       position: fixed;
       bottom: 90px;
-      left: 50%;
-      transform: translateX(-50%) translateY(20px);
+      left: 20px;
+      right: 20px;
+      max-width: 440px;
+      margin: 0 auto;
       background: var(--surface);
       color: var(--text-primary);
       border: 1px solid var(--border);
       border-radius: var(--radius-sm);
-      padding: 10px 20px;
+      padding: 12px 20px;
       font-size: 14px;
+      text-align: center;
       z-index: 300;
-      opacity: 0;
+      transform: translateY(calc(100% + 90px));
       pointer-events: none;
-      transition: opacity 0.2s ease, transform 0.2s ease;
+      transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .toast.visible {
-      opacity: 1;
-      transform: translateX(-50%) translateY(0);
+      transform: translateY(0);
     }
 
     /* Quarter Badge */
@@ -1976,7 +1978,7 @@
           renderGoals();
         }
 
-        showToast(`"${task.title}" completed`);
+        showToast(`<svg width="16" height="16" fill="none" stroke="var(--success)" stroke-width="2.5" viewBox="0 0 24 24" style="vertical-align: -3px; flex-shrink: 0;"><polyline points="20,6 9,17 4,12"/></svg> "${task.title}" completed`);
       });
     }
 
@@ -2246,7 +2248,7 @@
     // ============ TOAST ============
     function showToast(message, duration = 2500) {
       const toast = document.getElementById('toast');
-      toast.textContent = message;
+      toast.innerHTML = message;
       toast.classList.add('visible');
       setTimeout(() => toast.classList.remove('visible'), duration);
     }
