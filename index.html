@@ -546,6 +546,122 @@
       line-height: 1.5;
     }
 
+    /* Help Button */
+    .help-btn {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text-secondary);
+      cursor: pointer;
+      padding: 6px 10px;
+      font-size: 14px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Help Modal */
+    .help-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.85);
+      z-index: 100;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .help-overlay.visible {
+      display: flex;
+    }
+
+    .help-modal {
+      background: var(--surface);
+      border-radius: var(--radius);
+      max-width: 380px;
+      width: 100%;
+      max-height: 80vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .help-modal-header {
+      padding: 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .help-modal-title {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .help-modal-close {
+      background: none;
+      border: none;
+      color: var(--text-tertiary);
+      cursor: pointer;
+      padding: 4px;
+      display: flex;
+    }
+
+    .help-modal-body {
+      padding: 16px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .guide-step {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .guide-step-num {
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      background: var(--accent-dim);
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .guide-step-text {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    .guide-rules {
+      font-size: 12px;
+      color: var(--text-tertiary);
+      line-height: 1.6;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+    }
+
+    .guide-rules code {
+      background: var(--surface-hover);
+      padding: 1px 5px;
+      border-radius: 4px;
+      font-size: 11px;
+    }
+
     /* Config Upload */
     .upload-input {
       display: none;
@@ -1019,6 +1135,7 @@
             </svg>
             Upload
           </button>
+          <button class="help-btn" id="help-btn">?</button>
           <div class="menu-wrapper">
             <button class="menu-btn" id="menu-btn">
               <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
@@ -1041,6 +1158,7 @@
       <div id="goals-list">
         <!-- Dynamic content -->
       </div>
+
     </div>
 
     <!-- Today View -->
@@ -1103,6 +1221,48 @@
     </div>
   </div>
 
+  <!-- Help Modal -->
+  <div class="help-overlay" id="help-overlay">
+    <div class="help-modal">
+      <div class="help-modal-header">
+        <span class="help-modal-title">Getting Started</span>
+        <button class="help-modal-close" id="help-close">
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <div class="help-modal-body">
+        <div class="guide-step">
+          <span class="guide-step-num">1</span>
+          <span class="guide-step-text">Download the config template and open it in any text editor</span>
+        </div>
+        <div class="guide-step">
+          <span class="guide-step-num">2</span>
+          <span class="guide-step-text">Add your goals and tasks following the format in the template</span>
+        </div>
+        <div class="guide-step">
+          <span class="guide-step-num">3</span>
+          <span class="guide-step-text">Tap <strong>Upload</strong> to load your config into the app</span>
+        </div>
+        <button class="btn btn-primary btn-block" id="download-template-btn" style="margin-top: 16px;">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+            <polyline points="7,10 12,15 17,10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          Download Template
+        </button>
+        <div class="guide-rules">
+          <strong>Format tips:</strong><br>
+          Time: <code>15 min</code> <code>30m</code> <code>1h</code> <code>2 hours</code><br>
+          Link and Notes are optional<br>
+          Task IDs are auto-renumbered on upload
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="toast" id="toast"></div>
 
   <nav class="bottom-nav">
@@ -1126,7 +1286,7 @@
 
   <script>
     // ============ VERSION ============
-    const APP_VERSION = '1.5';
+    const APP_VERSION = '1.6';
     document.getElementById('app-footer').innerHTML = `Northstar v${APP_VERSION} &copy; Setu Kathawate`;
 
     // ============ AUTH ============
@@ -1165,6 +1325,10 @@
       localStorage.removeItem(AUTH_KEY);
     }
 
+    function hasCustomConfig() {
+      return localStorage.getItem('northstar-custom') === 'true';
+    }
+
     function initLockScreen() {
       const lockScreen = document.getElementById('lock-screen');
       const container = document.querySelector('.container');
@@ -1172,7 +1336,8 @@
       const pinInputs = document.getElementById('pin-inputs');
       const digits = pinInputs.querySelectorAll('.pin-digit');
 
-      if (checkAuth()) {
+      // Skip lock screen if using default sample content
+      if (!hasCustomConfig() || checkAuth()) {
         lockScreen.classList.add('hidden');
         return;
       }
@@ -1970,6 +2135,75 @@
       setTimeout(() => toast.classList.remove('visible'), duration);
     }
 
+    // ============ HELP MODAL & TEMPLATE ============
+    document.getElementById('help-btn').addEventListener('click', () => {
+      document.getElementById('help-overlay').classList.add('visible');
+    });
+
+    document.getElementById('help-close').addEventListener('click', () => {
+      document.getElementById('help-overlay').classList.remove('visible');
+    });
+
+    document.getElementById('help-overlay').addEventListener('click', (e) => {
+      if (e.target === e.currentTarget) {
+        document.getElementById('help-overlay').classList.remove('visible');
+      }
+    });
+
+    document.getElementById('download-template-btn').addEventListener('click', () => {
+      const template = `# Focus Config
+
+**Quarter:** Q1 2026
+
+---
+
+## Goals & Tasks
+
+### 1.0 [Goal 1 Title]
+
+#### 1.1 [Task title]
+- **Time:** 30 min
+- **Link:** [Label](https://url.com)
+- **Notes:**
+
+#### 1.2 [Task title]
+- **Time:** 60 min
+- **Notes:**
+
+---
+
+### 2.0 [Goal 2 Title]
+
+#### 2.1 [Task title]
+- **Time:** 30 min
+- **Notes:**
+
+#### 2.2 [Task title]
+- **Time:** 60 min
+- **Link:** [Label](https://url.com)
+- **Notes:**
+
+---
+
+### 3.0 [Goal 3 Title]
+
+#### 3.1 [Task title]
+- **Time:** 30 min
+- **Notes:**
+
+#### 3.2 [Task title]
+- **Time:** 60 min
+- **Notes:**
+`;
+      const blob = new Blob([template], { type: 'text/markdown' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'focus-config-template.md';
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
     // ============ CONFIG UPLOAD ============
     let pendingConfig = null;
 
@@ -2025,6 +2259,7 @@
         state.quarter = pendingConfig.quarter;
         state.goals = pendingConfig.goals;
         // Keep taskState intact - matching IDs retain their completion status
+        localStorage.setItem('northstar-custom', 'true');
         saveState();
         renderGoals();
         renderToday();
@@ -2059,6 +2294,8 @@
 
     document.getElementById('confirm-reset').addEventListener('click', () => {
       localStorage.removeItem('focus-app-v2');
+      localStorage.removeItem('northstar-custom');
+      localStorage.removeItem(AUTH_KEY);
       state.taskState = {};
       state.deferredThisSession = {};
       loadDefaultConfig();
