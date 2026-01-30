@@ -366,12 +366,53 @@
       display: flex;
       align-items: center;
       gap: 10px;
+      position: relative;
+      overflow: hidden;
+      padding-bottom: 14px;
     }
 
     .selector-btn.goal-selector .goal-number {
       width: 24px;
       height: 24px;
       font-size: 12px;
+      flex-shrink: 0;
+    }
+
+    .selector-btn.goal-selector .goal-number.complete {
+      background: var(--success);
+    }
+
+    .selector-btn.goal-selector .goal-number.complete svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    .goal-selector-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .goal-selector-progress {
+      font-size: 12px;
+      color: var(--text-tertiary);
+      margin-top: 2px;
+    }
+
+    .goal-selector-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--border);
+      border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+    }
+
+    .goal-selector-fill {
+      height: 100%;
+      background: var(--success);
+      border-radius: 0 0 var(--radius-sm) 0;
+      transition: width 0.3s ease;
     }
 
     /* Task Suggestion Card */
@@ -381,6 +422,18 @@
       border: 1px solid var(--accent);
       padding: 20px;
       margin-bottom: 16px;
+      animation: fadeSlideIn 0.3s ease;
+    }
+
+    .suggestion-card.completing {
+      opacity: 0;
+      transform: translateY(-10px);
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+
+    @keyframes fadeSlideIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     .suggestion-header {
@@ -1073,7 +1126,7 @@
 
   <script>
     // ============ VERSION ============
-    const APP_VERSION = '1.4';
+    const APP_VERSION = '1.5';
     document.getElementById('app-footer').innerHTML = `Northstar v${APP_VERSION} &copy; Setu Kathawate`;
 
     // ============ AUTH ============
@@ -1469,12 +1522,20 @@
 
       // Goal selector
       const goalSelector = document.getElementById('goal-selector');
-      goalSelector.innerHTML = state.goals.map((goal, index) => `
-        <button class="selector-btn goal-selector ${selectedGoalIndex === index ? 'selected' : ''}" data-goal-index="${index}">
-          <span class="goal-number">${index + 1}</span>
-          <span>${escapeHtml(goal.title)}</span>
-        </button>
-      `).join('');
+      goalSelector.innerHTML = state.goals.map((goal, index) => {
+        const p = getGoalProgress(goal);
+        const isComplete = p.total > 0 && p.completed === p.total;
+        return `
+          <button class="selector-btn goal-selector ${selectedGoalIndex === index ? 'selected' : ''}" data-goal-index="${index}">
+            <span class="goal-number ${isComplete ? 'complete' : ''}">${isComplete ? '<svg fill="none" stroke="white" stroke-width="3" viewBox="0 0 24 24"><polyline points="20,6 9,17 4,12"/></svg>' : index + 1}</span>
+            <div class="goal-selector-info">
+              <div>${escapeHtml(goal.title)}</div>
+              <div class="goal-selector-progress">${p.completed}/${p.total} tasks</div>
+            </div>
+            <div class="goal-selector-bar"><div class="goal-selector-fill" style="width: ${p.percent}%"></div></div>
+          </button>
+        `;
+      }).join('');
 
       goalSelector.querySelectorAll('.goal-selector').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -1608,9 +1669,42 @@
 
       document.getElementById('complete-btn').addEventListener('click', () => {
         setTaskCompleted(task.id, true);
-        renderTaskSuggestion();
-        renderGoals();
-        renderProgress();
+
+        // Update goal progress bar immediately
+        if (selectedGoalIndex !== null) {
+          const goal = state.goals[selectedGoalIndex];
+          const p = getGoalProgress(goal);
+          const selectorBtn = document.querySelectorAll('.selector-btn.goal-selector')[selectedGoalIndex];
+          if (selectorBtn) {
+            const fill = selectorBtn.querySelector('.goal-selector-fill');
+            if (fill) fill.style.width = p.percent + '%';
+            const progressText = selectorBtn.querySelector('.goal-selector-progress');
+            if (progressText) progressText.textContent = `${p.completed}/${p.total} tasks`;
+            // Swap number to checkmark if complete
+            if (p.total > 0 && p.completed === p.total) {
+              const numEl = selectorBtn.querySelector('.goal-number');
+              if (numEl) {
+                numEl.classList.add('complete');
+                numEl.innerHTML = '<svg fill="none" stroke="white" stroke-width="3" viewBox="0 0 24 24"><polyline points="20,6 9,17 4,12"/></svg>';
+              }
+            }
+          }
+        }
+
+        // Animate card out, then show next task
+        const card = document.querySelector('.suggestion-card');
+        if (card) {
+          card.classList.add('completing');
+          setTimeout(() => {
+            renderTaskSuggestion();
+            renderGoals();
+          }, 200);
+        } else {
+          renderTaskSuggestion();
+          renderGoals();
+        }
+
+        showToast(`"${task.title}" completed`);
       });
     }
 
