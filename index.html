@@ -360,6 +360,12 @@
       color: var(--text-primary);
     }
 
+    .selector-btn:disabled {
+      opacity: 0.35;
+      cursor: default;
+      pointer-events: none;
+    }
+
     .selector-btn.goal-selector {
       width: 100%;
       text-align: left;
@@ -1582,7 +1588,7 @@
 
   <script>
     // ============ VERSION ============
-    const APP_VERSION = '1.13';
+    const APP_VERSION = '1.14';
     document.getElementById('app-footer').innerHTML = `Northstar v${APP_VERSION} &copy; Setu Kathawate`;
 
     // ============ AUTH ============
@@ -2123,16 +2129,24 @@
         });
       });
 
-      // Time selector
+      // Time selector — disable slots with no matching tasks
       const timeSelector = document.getElementById('time-selector');
+      const goal = selectedGoalIndex !== null ? state.goals[selectedGoalIndex] : null;
       timeSelector.querySelectorAll('.selector-btn').forEach(btn => {
-        btn.classList.toggle('selected', parseInt(btn.dataset.time) === selectedTime);
+        const time = parseInt(btn.dataset.time);
+        const hasTask = goal ? goal.tasks.some(t => !getTaskState(t.id).completed && t.time <= time) : true;
+        btn.disabled = !hasTask;
+        btn.classList.toggle('selected', time === selectedTime && hasTask);
         btn.onclick = () => {
-          selectedTime = parseInt(btn.dataset.time);
+          selectedTime = time;
           renderToday();
           renderTaskSuggestion();
         };
       });
+      // Deselect time if current selection is now disabled
+      if (selectedTime !== null && goal && !goal.tasks.some(t => !getTaskState(t.id).completed && t.time <= selectedTime)) {
+        selectedTime = null;
+      }
 
       renderTaskSuggestion();
     }
