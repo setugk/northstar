@@ -1039,6 +1039,26 @@
       color: var(--text-secondary);
     }
 
+    /* Demo banner */
+    .demo-banner {
+      padding: 8px 12px;
+      margin-bottom: 20px;
+      font-size: 12px;
+      color: var(--text-tertiary);
+      line-height: 1.4;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+    }
+
+    .demo-banner a {
+      color: var(--text-secondary);
+      text-decoration: underline;
+      cursor: pointer;
+    }
+
     .app-footer {
       text-align: center;
       padding: 24px 0 8px;
@@ -1228,9 +1248,12 @@
 
     <!-- Today View -->
     <div class="view active" id="view-today">
-      <div class="header">
-        <div class="greeting" id="greeting">Good evening</div>
-        <div class="page-title" id="current-date">Thursday, Jan 29</div>
+      <div class="header" style="display: flex; justify-content: space-between; align-items: flex-start;">
+        <div>
+          <div class="greeting" id="greeting">Good evening</div>
+          <div class="page-title" id="current-date">Thursday, Jan 29</div>
+        </div>
+        <button class="help-btn" id="help-btn-today">?</button>
       </div>
 
       <div class="selector-group">
@@ -1358,7 +1381,7 @@
 
   <script>
     // ============ VERSION ============
-    const APP_VERSION = '1.9';
+    const APP_VERSION = '1.10';
     document.getElementById('app-footer').innerHTML = `Northstar v${APP_VERSION} &copy; Setu Kathawate`;
 
     // ============ AUTH ============
@@ -1649,6 +1672,19 @@
       };
     }
 
+    function demoBannerHtml() {
+      if (hasCustomConfig()) return '';
+      return `
+        <div class="demo-banner">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" style="flex-shrink: 0; opacity: 0.7;">
+            <circle cx="12" cy="12" r="10"/>
+            <polygon points="16.24,7.76 14.12,14.12 7.76,16.24 9.88,9.88"/>
+          </svg>
+          <span>You're exploring! These are sample goals. <a onclick="document.getElementById('upload-input').click()">Upload yours</a> to make it real.</span>
+        </div>
+      `;
+    }
+
     function escapeHtml(text) {
       const div = document.createElement('div');
       div.textContent = text;
@@ -1680,6 +1716,13 @@
       document.getElementById('quarter-display').textContent = state.quarter;
       const goalsName = getUserName();
       document.getElementById('goals-title').textContent = goalsName ? `${goalsName}'s Goals` : 'Goals';
+
+      // Demo banner
+      const existingBanner = document.querySelector('#view-goals .demo-banner');
+      if (existingBanner) existingBanner.remove();
+      if (!hasCustomConfig()) {
+        progressCard.insertAdjacentHTML('beforebegin', demoBannerHtml());
+      }
 
       // Render overall progress
       const overall = getOverallProgress();
@@ -1793,6 +1836,13 @@
       const options = { weekday: 'long', month: 'short', day: 'numeric' };
       document.getElementById('current-date').textContent = 
         new Date().toLocaleDateString('en-US', options);
+
+      // Demo banner
+      const existingTodayBanner = document.querySelector('#view-today .demo-banner');
+      if (existingTodayBanner) existingTodayBanner.remove();
+      if (!hasCustomConfig()) {
+        document.querySelector('#view-today .header').insertAdjacentHTML('afterend', demoBannerHtml());
+      }
 
       // Goal selector
       const goalSelector = document.getElementById('goal-selector');
@@ -2254,9 +2304,12 @@
     }
 
     // ============ HELP MODAL & TEMPLATE ============
-    document.getElementById('help-btn').addEventListener('click', () => {
+    function openHelp() {
       document.getElementById('help-overlay').classList.add('visible');
-    });
+    }
+
+    document.getElementById('help-btn').addEventListener('click', openHelp);
+    document.getElementById('help-btn-today').addEventListener('click', openHelp);
 
     document.getElementById('help-close').addEventListener('click', () => {
       document.getElementById('help-overlay').classList.remove('visible');
