@@ -1402,7 +1402,7 @@
               <polyline points="17,8 12,3 7,8"/>
               <line x1="12" y1="3" x2="12" y2="15"/>
             </svg>
-            Upload
+            Add goals
           </button>
           <button class="help-btn" id="help-btn">?</button>
           <div class="menu-wrapper">
@@ -1535,7 +1535,7 @@
         </div>
         <div class="guide-step">
           <span class="guide-step-num">3</span>
-          <span class="guide-step-text">Tap <strong>Upload</strong> to load it into the app</span>
+          <span class="guide-step-text">Tap <strong>Add goals</strong> to load it into the app</span>
         </div>
         <button class="btn btn-primary btn-block" id="download-template-btn" style="margin-top: 16px;">
           <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -1545,14 +1545,15 @@
           </svg>
           Download Template
         </button>
-        <div class="guide-rules">
-          <strong>Format tips:</strong><br>
-          Time: <code>15 min</code> <code>30 min</code> <code>1h</code> <code>2h</code><br>
-          Link and Notes are optional<br>
-          Save as .md or .txt — both work
-        </div>
-        <div style="font-size: 11px; color: var(--text-tertiary); text-align: center; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border);">
-          Your data stays on this device. Nothing is sent to a server.
+        <div style="font-size: 12px; color: var(--text-tertiary); line-height: 1.6; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 10px;">
+          <div style="display: flex; gap: 8px; align-items: flex-start;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 2px; opacity: 0.7;"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+            <span>Northstar tracks goals over a quarter — it's not a to-do list. Be intentional: craft your goals in a doc, upload when ready. You can't edit inside the app, and that's&nbsp;by&nbsp;design.</span>
+          </div>
+          <div style="display: flex; gap: 8px; align-items: flex-start;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 2px; opacity: 0.7;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <span>Your data stays on this device. Nothing is sent to&nbsp;a&nbsp;server.</span>
+          </div>
         </div>
       </div>
     </div>
@@ -1581,7 +1582,7 @@
 
   <script>
     // ============ VERSION ============
-    const APP_VERSION = '1.12';
+    const APP_VERSION = '1.13';
     document.getElementById('app-footer').innerHTML = `Northstar v${APP_VERSION} &copy; Setu Kathawate`;
 
     // ============ AUTH ============
@@ -2739,16 +2740,19 @@ Format tips:
     document.querySelectorAll('.nav-item').forEach(item => {
       item.addEventListener('click', () => {
         const view = item.dataset.view;
-        
+        const alreadyActive = item.classList.contains('active');
+
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
         item.classList.add('active');
-        
+
         document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
         document.getElementById(`view-${view}`).classList.add('active');
 
-        // Re-render active view
-        if (view === 'goals') renderGoals();
-        if (view === 'today') renderToday();
+        // Only re-render when switching to a different tab
+        if (!alreadyActive) {
+          if (view === 'goals') renderGoals();
+          if (view === 'today') renderToday();
+        }
       });
     });
 
