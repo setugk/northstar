@@ -1507,6 +1507,55 @@
     .config-action-btn:hover { background: var(--surface-hover); color: var(--text-secondary); }
     .config-action-btn.danger:hover { background: rgba(220,38,38,0.08); color: var(--danger); }
 
+    /* Activity chips + suggestions */
+    .activity-chips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+    .activity-chip {
+      padding: 5px 11px; background: var(--surface-hover); border: 1px solid var(--border);
+      border-radius: 20px; font-size: 12px; color: var(--text-secondary); cursor: pointer;
+      white-space: nowrap; transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+    }
+    .activity-chip:hover { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+    .activity-suggestions {
+      position: absolute; top: calc(100% + 2px); left: 0; right: 0;
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm);
+      z-index: 200; max-height: 180px; overflow-y: auto;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.10); display: none;
+    }
+    .activity-suggestions.open { display: block; }
+    .activity-suggestion-item {
+      padding: 10px 12px; font-size: 14px; cursor: pointer;
+      border-bottom: 1px solid var(--border);
+    }
+    .activity-suggestion-item:last-child { border-bottom: none; }
+    .activity-suggestion-item:hover { background: var(--surface-hover); }
+    .activity-suggestion-meta { font-size: 11px; color: var(--text-tertiary); margin-top: 2px; }
+
+    /* Set rows (log activity sheet) */
+    .set-rows { display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; }
+    .set-row { display: flex; align-items: center; gap: 8px; }
+    .set-row-label { font-size: 13px; color: var(--text-tertiary); width: 42px; flex-shrink: 0; }
+    .set-row-value { width: 72px; flex-shrink: 0; text-align: center; }
+    .set-row-unit-label { font-size: 13px; color: var(--text-secondary); flex: 1; }
+    .set-row-unit {
+      flex: 1; padding: 10px 8px; font-size: 14px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); color: var(--text-primary);
+    }
+    .set-row-remove {
+      width: 28px; height: 28px; padding: 0; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: none; border: 1px solid var(--border); border-radius: 50%;
+      color: var(--text-tertiary); cursor: pointer; font-size: 18px; line-height: 1;
+      transition: border-color 0.12s, color 0.12s;
+    }
+    .set-row-remove:hover { border-color: var(--danger); color: var(--danger); }
+    .add-set-btn {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 6px 0; background: none; border: none;
+      color: var(--accent); font-size: 13px; font-weight: 500; cursor: pointer;
+    }
+    .add-set-btn:hover { opacity: 0.75; }
+
     /* Add row */
     .add-row {
       display: flex; align-items: center; gap: 8px;
@@ -1520,6 +1569,17 @@
       transition: background 0.15s ease;
     }
     .add-row:hover { background: var(--accent-dim); }
+
+    /* Health preferences — fitness level toggle */
+    .prefs-level-btn {
+      flex: 1; padding: 8px 4px; font-size: 12px; font-weight: 500;
+      border: 1px solid var(--border); border-radius: var(--radius-sm);
+      background: none; color: var(--text-secondary); cursor: pointer;
+      transition: border-color 0.12s, background 0.12s, color 0.12s;
+    }
+    .prefs-level-btn.active {
+      border-color: var(--accent); background: var(--accent-dim); color: var(--accent);
+    }
 
     /* Quarter row */
     .quarter-row {
@@ -1667,7 +1727,7 @@
     </div>
 
     <!-- Today View -->
-    <div class="view active" id="view-today">
+    <div class="view" id="view-today">
       <div class="header" style="display: flex; justify-content: space-between; align-items: flex-start;">
         <div>
           <div style="font-size:13px;color:var(--text-tertiary);margin-bottom:2px;" id="today-date-label">Jan 29</div>
@@ -1704,7 +1764,7 @@
     </div>
 
     <!-- Health View -->
-    <div class="view" id="view-health">
+    <div class="view active" id="view-health">
       <!-- Dynamic content rendered by renderHealth() -->
     </div>
 
@@ -1811,20 +1871,20 @@
   <div class="toast" id="toast"></div>
 
   <nav class="bottom-nav">
-    <button class="nav-item active" data-view="today">
+    <button class="nav-item active" data-view="health">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/>
+      </svg>
+      <span class="nav-label">Health</span>
+    </button>
+    <button class="nav-item" data-view="today">
       <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
         <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
         <line x1="16" y1="2" x2="16" y2="6"/>
         <line x1="8" y1="2" x2="8" y2="6"/>
         <line x1="3" y1="10" x2="21" y2="10"/>
       </svg>
-      <span class="nav-label">Today</span>
-    </button>
-    <button class="nav-item" data-view="health">
-      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-        <polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/>
-      </svg>
-      <span class="nav-label">Health</span>
+      <span class="nav-label">Focus</span>
     </button>
     <button class="nav-item" data-view="progress">
       <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -1838,7 +1898,7 @@
 
   <script>
     // ============ VERSION ============
-    const APP_VERSION = '1.19';
+    const APP_VERSION = '1.22';
     document.getElementById('app-footer').innerHTML = `Northstar v${APP_VERSION} &copy; Setu Kathawate`;
 
     // ============ AUTH ============
@@ -2961,7 +3021,7 @@ Format tips:
         { id: 'mon-5', name: 'Bent-over dumbbell rows', sets: 2, reps: '8–12 reps' }
       ]},
       2: { type: 'Aerobic Activity', exercises: [
-        { id: 'tue-1', name: '30-min brisk walk or light jog', duration: '30 min', note: 'Target a pace where you can talk but not sing comfortably' }
+        { id: 'tue-1', name: 'Brisk walk', duration: '30 min' }
       ]},
       3: { type: 'Strength Training — Lower Body', exercises: [
         { id: 'wed-1', name: 'Bodyweight squats', sets: 2, reps: '10–15 reps' },
@@ -2971,7 +3031,7 @@ Format tips:
         { id: 'wed-5', name: 'Step-ups', sets: 2, reps: '10 per leg', note: 'Use a sturdy chair or step' }
       ]},
       4: { type: 'Aerobic Activity', exercises: [
-        { id: 'thu-1', name: '30-min cycling, swimming, or brisk walk', duration: '30 min', note: 'Vary the activity from Tuesday to keep it engaging' }
+        { id: 'thu-1', name: 'Cycling', duration: '30 min' }
       ]},
       5: { type: 'Full Body / Active Rest', exercises: [
         { id: 'fri-1', name: 'Light stretching or yoga flow', duration: '10 min' },
@@ -2985,6 +3045,357 @@ Format tips:
     const HEALTH_SCHEDULE_KEY = 'northstar-health-schedule';
     const HEALTH_STATE_KEY = 'northstar-health-state';
     const HEALTH_EXTRA_KEY = 'northstar-health-extra';
+    const HEALTH_PREFS_KEY = 'northstar-health-prefs';
+
+    // Built-in activity corpus. units[] drives the log sheet:
+    // single-unit → plain label; multi-unit → dropdown per row.
+    const ACTIVITY_CORPUS = [
+      // Strength — barbell
+      { name: 'Squat',                  units: ['reps'] },
+      { name: 'Front Squat',            units: ['reps'] },
+      { name: 'Deadlift',               units: ['reps'] },
+      { name: 'Sumo Deadlift',          units: ['reps'] },
+      { name: 'Romanian Deadlift',      units: ['reps'] },
+      { name: 'Bench Press',            units: ['reps'] },
+      { name: 'Incline Press',          units: ['reps'] },
+      { name: 'Overhead Press',         units: ['reps'] },
+      { name: 'Barbell Row',            units: ['reps'] },
+      { name: 'Pendlay Row',            units: ['reps'] },
+      { name: 'Good Morning',           units: ['reps'] },
+      { name: 'Hip Thrust',             units: ['reps'] },
+      { name: 'Clean',                  units: ['reps'] },
+      { name: 'Clean and Jerk',         units: ['reps'] },
+      { name: 'Snatch',                 units: ['reps'] },
+      { name: 'Thruster',               units: ['reps'] },
+      // Strength — bodyweight
+      { name: 'Pull-up',                units: ['reps'] },
+      { name: 'Chin-up',                units: ['reps'] },
+      { name: 'Push-up',                units: ['reps'] },
+      { name: 'Dip',                    units: ['reps'] },
+      { name: 'Ring Row',               units: ['reps'] },
+      { name: 'Muscle-up',              units: ['reps'] },
+      { name: 'Pistol Squat',           units: ['reps'] },
+      { name: 'Bulgarian Split Squat',  units: ['reps'] },
+      { name: 'Lunge',                  units: ['reps'] },
+      { name: 'Box Jump',               units: ['reps'] },
+      { name: 'Step-up',                units: ['reps'] },
+      { name: 'Back Extension',         units: ['reps'] },
+      { name: 'Sit-up',                 units: ['reps'] },
+      { name: 'Crunch',                 units: ['reps'] },
+      { name: 'Leg Raise',              units: ['reps'] },
+      { name: 'V-up',                   units: ['reps'] },
+      { name: 'Burpee',                 units: ['reps'] },
+      { name: 'Mountain Climber',       units: ['reps'] },
+      // Strength — dumbbell / cable / machine
+      { name: 'Dumbbell Press',         units: ['reps'] },
+      { name: 'Dumbbell Curl',          units: ['reps'] },
+      { name: 'Hammer Curl',            units: ['reps'] },
+      { name: 'Preacher Curl',          units: ['reps'] },
+      { name: 'Tricep Extension',       units: ['reps'] },
+      { name: 'Skull Crusher',          units: ['reps'] },
+      { name: 'Dumbbell Fly',           units: ['reps'] },
+      { name: 'Lateral Raise',          units: ['reps'] },
+      { name: 'Front Raise',            units: ['reps'] },
+      { name: 'Arnold Press',           units: ['reps'] },
+      { name: 'Face Pull',              units: ['reps'] },
+      { name: 'Shrug',                  units: ['reps'] },
+      { name: 'Lat Pulldown',           units: ['reps'] },
+      { name: 'Cable Row',              units: ['reps'] },
+      { name: 'Chest Fly Machine',      units: ['reps'] },
+      { name: 'Leg Press',              units: ['reps'] },
+      { name: 'Leg Extension',          units: ['reps'] },
+      { name: 'Leg Curl',               units: ['reps'] },
+      { name: 'Calf Raise',             units: ['reps'] },
+      // Kettlebell
+      { name: 'Kettlebell Swing',       units: ['reps'] },
+      { name: 'Turkish Get-up',         units: ['reps'] },
+      { name: 'Kettlebell Clean',       units: ['reps'] },
+      { name: 'Kettlebell Press',       units: ['reps'] },
+      { name: 'Kettlebell Goblet Squat', units: ['reps'] },
+      // Isometric / holds (time-based)
+      { name: 'Plank',                  units: ['sec', 'min'] },
+      { name: 'Side Plank',             units: ['sec', 'min'] },
+      { name: 'Wall Sit',               units: ['sec', 'min'] },
+      { name: 'Dead Hang',              units: ['sec', 'min'] },
+      { name: 'Hollow Hold',            units: ['sec', 'min'] },
+      { name: 'L-sit',                  units: ['sec', 'min'] },
+      // Cardio — distance + time
+      { name: 'Running',                units: ['km', 'miles', 'min'] },
+      { name: 'Cycling',                units: ['km', 'miles', 'min'] },
+      { name: 'Walking',                units: ['km', 'miles', 'min'] },
+      { name: 'Hiking',                 units: ['km', 'miles', 'min'] },
+      { name: 'Treadmill',              units: ['km', 'miles', 'min'] },
+      // Cardio — swim / row
+      { name: 'Swimming',               units: ['laps', 'm', 'min'] },
+      { name: 'Rowing',                 units: ['m', 'km', 'min'] },
+      { name: 'Ski Erg',                units: ['m', 'km', 'min'] },
+      // Cardio — machine / mixed
+      { name: 'Elliptical',             units: ['min'] },
+      { name: 'Stair Climber',          units: ['min'] },
+      { name: 'Assault Bike',           units: ['cal', 'min'] },
+      { name: 'Jump Rope',              units: ['jumps', 'min'] },
+      { name: 'HIIT',                   units: ['min'] },
+      { name: 'Sprints',                units: ['m', 'min'] },
+      { name: 'Farmer\'s Walk',         units: ['m', 'min'] },
+      // Flexibility / mobility / recovery
+      { name: 'Stretching',             units: ['min'] },
+      { name: 'Yoga',                   units: ['min'] },
+      { name: 'Meditation',             units: ['min'] },
+      { name: 'Foam Rolling',           units: ['min'] },
+      { name: 'Mobility Work',          units: ['min'] },
+      { name: 'Cold Shower',            units: ['min'] },
+      { name: 'Sauna',                  units: ['min'] },
+      { name: 'Ice Bath',               units: ['min'] },
+      // Sports
+      { name: 'Basketball',             units: ['min', 'hr'] },
+      { name: 'Tennis',                 units: ['min', 'hr'] },
+      { name: 'Soccer',                 units: ['min', 'hr'] },
+      { name: 'Badminton',              units: ['min', 'hr'] },
+      { name: 'Squash',                 units: ['min', 'hr'] },
+      { name: 'Volleyball',             units: ['min', 'hr'] },
+      { name: 'Cricket',                units: ['min', 'hr'] },
+      { name: 'Football',               units: ['min', 'hr'] },
+      { name: 'Baseball',               units: ['min', 'hr'] },
+      { name: 'Golf',                   units: ['holes', 'min', 'hr'] },
+      { name: 'Rock Climbing',          units: ['routes', 'min'] },
+      { name: 'Bouldering',             units: ['problems', 'min'] },
+      { name: 'Martial Arts',           units: ['min'] },
+      { name: 'Boxing',                 units: ['rounds', 'min'] },
+      { name: 'Wrestling',              units: ['min'] },
+      { name: 'Jiu-Jitsu',             units: ['rounds', 'min'] },
+      { name: 'Muay Thai',              units: ['rounds', 'min'] },
+      { name: 'Pickleball',             units: ['min', 'hr'] },
+      { name: 'Table Tennis',           units: ['min', 'hr'] },
+    ];
+
+    // ============ WEEKLY SCHEDULE GENERATION ============
+    const WEEKLY_SCHEDULE_KEY = 'northstar-weekly-schedule';
+
+    const WEEK_POOLS = {
+      aerobic: [
+        { name: 'Brisk walk',    duration: '30 min' },
+        { name: 'Light jog',     duration: '25 min' },
+        { name: 'Cycling',       duration: '30 min' },
+        { name: 'Swimming',      duration: '20 min' },
+        { name: 'Jump Rope',     duration: '15 min' },
+        { name: 'Hiking',        duration: '30 min' },
+        { name: 'Elliptical',    duration: '25 min' },
+        { name: 'Stair Climber', duration: '20 min' },
+      ],
+      upperPush: [
+        { name: 'Push-up',        sets: 2, reps: '8–12 reps' },
+        { name: 'Dumbbell Press', sets: 2, reps: '8–12 reps' },
+        { name: 'Incline Press',  sets: 2, reps: '8–12 reps' },
+      ],
+      upperShoulder: [
+        { name: 'Dumbbell Shoulder Press', sets: 2, reps: '8–12 reps' },
+        { name: 'Lateral Raise',           sets: 2, reps: '12–15 reps' },
+        { name: 'Arnold Press',            sets: 2, reps: '8–10 reps' },
+      ],
+      upperBicep: [
+        { name: 'Dumbbell Curl', sets: 2, reps: '10–12 reps' },
+        { name: 'Hammer Curl',   sets: 2, reps: '10–12 reps' },
+      ],
+      upperTricep: [
+        { name: 'Tricep Extension', sets: 2, reps: '10–12 reps' },
+        { name: 'Dip',              sets: 2, reps: '8–10 reps', note: 'Use a sturdy chair' },
+      ],
+      upperBack: [
+        { name: 'Bent-over Row', sets: 2, reps: '8–12 reps' },
+        { name: 'Lat Pulldown',  sets: 2, reps: '10–12 reps' },
+        { name: 'Face Pull',     sets: 2, reps: '12–15 reps' },
+      ],
+      lowerSquat: [
+        { name: 'Bodyweight Squat', sets: 2, reps: '12–15 reps' },
+        { name: 'Goblet Squat',     sets: 2, reps: '10–12 reps', note: 'Hold a dumbbell at chest height' },
+        { name: 'Sumo Squat',       sets: 2, reps: '12–15 reps', note: 'Wide stance, toes turned out' },
+      ],
+      lowerLunge: [
+        { name: 'Reverse Lunge',         sets: 2, reps: '10 per leg' },
+        { name: 'Lunge',                 sets: 2, reps: '10 per leg' },
+        { name: 'Step-up',               sets: 2, reps: '10 per leg', note: 'Use a sturdy chair or step' },
+        { name: 'Bulgarian Split Squat', sets: 2, reps: '8 per leg',  note: 'Rear foot elevated on a chair' },
+      ],
+      lowerGlute: [
+        { name: 'Glute Bridge', sets: 2, reps: '12–15 reps' },
+        { name: 'Hip Thrust',   sets: 2, reps: '10–12 reps', note: 'Back against a couch or bench' },
+      ],
+      lowerCore: [
+        { name: 'Back Extension', sets: 2, reps: '12–15 reps' },
+        { name: 'Dead Bug',       sets: 2, reps: '8 per side', note: 'Keep lower back pressed to floor' },
+        { name: 'Bird Dog',       sets: 2, reps: '8 per side' },
+      ],
+      friFlexibility: [
+        { name: 'Stretching',    duration: '10 min' },
+        { name: 'Yoga',          duration: '10 min' },
+        { name: 'Foam Rolling',  duration: '10 min' },
+        { name: 'Mobility Work', duration: '10 min' },
+      ],
+      friCore: [
+        { name: 'Plank hold', sets: 3, reps: '20–30 sec' },
+        { name: 'Side Plank', sets: 2, reps: '20–30 sec per side' },
+        { name: 'Dead Bug',   sets: 2, reps: '8 per side', note: 'Keep lower back pressed to floor' },
+      ],
+      friLight: [
+        { name: 'Bodyweight Squat', sets: 1, reps: '10 reps' },
+        { name: 'Lunge',            sets: 1, reps: '8 per leg' },
+        { name: 'Mountain Climber', sets: 1, reps: '15 reps' },
+      ],
+      friFinisher: [
+        { name: 'Push-up', sets: 1, reps: '8–10 reps' },
+        { name: 'Burpee',  sets: 1, reps: '6–8 reps', note: 'Drop the jump if needed' },
+      ],
+    };
+
+    function getWeekMonday() {
+      const d = new Date();
+      const dow = d.getDay();
+      d.setDate(d.getDate() - (dow === 0 ? 6 : dow - 1));
+      return d.toISOString().split('T')[0];
+    }
+
+    function weekRng(seed) {
+      let s = seed >>> 0;
+      return function() {
+        s = Math.imul(s ^ (s >>> 13), s | 1);
+        s ^= s << 7;
+        s = Math.imul(s ^ (s >>> 17), s | 1);
+        return (s >>> 0) / 0x100000000;
+      };
+    }
+
+    function generateWeekSchedule(mondayStr) {
+      const seed = parseInt(mondayStr.replace(/-/g, ''), 10);
+      const rng = weekRng(seed);
+      function pick(arr) { return arr[Math.floor(rng() * arr.length)]; }
+      function shuffle(arr) {
+        const a = [...arr];
+        for (let i = a.length - 1; i > 0; i--) {
+          const j = Math.floor(rng() * (i + 1));
+          [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
+      }
+
+      const aerobicPair = shuffle(WEEK_POOLS.aerobic);
+      const aerobic1 = aerobicPair[0];
+      const aerobic2 = aerobicPair[1];
+
+      const upper = [
+        { ...pick(WEEK_POOLS.upperPush),     id: 'gen-mon-0' },
+        { ...pick(WEEK_POOLS.upperShoulder), id: 'gen-mon-1' },
+        { ...pick(WEEK_POOLS.upperBicep),    id: 'gen-mon-2' },
+        { ...pick(WEEK_POOLS.upperTricep),   id: 'gen-mon-3' },
+        { ...pick(WEEK_POOLS.upperBack),     id: 'gen-mon-4' },
+      ];
+
+      const lower = [
+        { ...pick(WEEK_POOLS.lowerSquat), id: 'gen-wed-0' },
+        { ...pick(WEEK_POOLS.lowerLunge), id: 'gen-wed-1' },
+        { ...pick(WEEK_POOLS.lowerGlute), id: 'gen-wed-2' },
+        { name: 'Calf Raise', sets: 2, reps: '15–20 reps', id: 'gen-wed-3' },
+        { ...pick(WEEK_POOLS.lowerCore),  id: 'gen-wed-4' },
+      ];
+
+      const fri = [
+        { ...pick(WEEK_POOLS.friFlexibility), id: 'gen-fri-0' },
+        { ...pick(WEEK_POOLS.friCore),        id: 'gen-fri-1' },
+        { ...pick(WEEK_POOLS.friLight),       id: 'gen-fri-2' },
+        { ...pick(WEEK_POOLS.friFinisher),    id: 'gen-fri-3' },
+      ];
+
+      return {
+        weekOf: mondayStr,
+        schedule: {
+          0: JSON.parse(JSON.stringify(DEFAULT_HEALTH_SCHEDULE[0])),
+          1: { type: 'Strength Training — Upper Body', exercises: upper },
+          2: { type: 'Aerobic Activity', exercises: [{ id: 'gen-tue-0', name: aerobic1.name, duration: aerobic1.duration }] },
+          3: { type: 'Strength Training — Lower Body', exercises: lower },
+          4: { type: 'Aerobic Activity', exercises: [{ id: 'gen-thu-0', name: aerobic2.name, duration: aerobic2.duration }] },
+          5: { type: 'Active Rest', exercises: fri },
+          6: JSON.parse(JSON.stringify(DEFAULT_HEALTH_SCHEDULE[6])),
+        }
+      };
+    }
+
+    async function generateAISchedule(mondayStr, prefs, apiKey) {
+      const level = prefs.fitnessLevel || 'beginner';
+      const prompt = `You are a personal fitness coach. Create a weekly workout schedule.
+
+User context: "${prefs.context}"
+Fitness level: ${level}
+
+Return ONLY a JSON object (no markdown, no explanation):
+{
+  "1": {"type": "Strength Training — Upper Body", "exercises": [{"name": "Push-up", "sets": 2, "reps": "8–12 reps", "note": "optional"}]},
+  "2": {"type": "Aerobic Activity", "exercises": [{"name": "Brisk walk", "duration": "30 min"}]},
+  "3": {"type": "Strength Training — Lower Body", "exercises": [...]},
+  "4": {"type": "Aerobic Activity", "exercises": [...]},
+  "5": {"type": "Active Rest", "exercises": [...]}
+}
+
+Keys 1–5 are Mon–Fri. 4–5 exercises on strength days. 1 on aerobic days. 2–3 on active rest.
+${level === 'beginner' ? 'Beginner: bodyweight and light dumbbells only, modest reps, include helpful notes.' : ''}
+Adapt exercises to the user context. Avoid anything that would aggravate mentioned injuries.`;
+
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01',
+          'content-type': 'application/json',
+          'anthropic-dangerous-direct-browser-access': 'true',
+        },
+        body: JSON.stringify({
+          model: 'claude-haiku-4-5-20251001',
+          max_tokens: 1024,
+          messages: [{ role: 'user', content: prompt }],
+        }),
+      });
+      if (!res.ok) throw new Error(`API ${res.status}`);
+      const data = await res.json();
+      const raw = data.content[0].text.trim().replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '');
+      const parsed = JSON.parse(raw);
+      const schedule = {
+        0: JSON.parse(JSON.stringify(DEFAULT_HEALTH_SCHEDULE[0])),
+        6: JSON.parse(JSON.stringify(DEFAULT_HEALTH_SCHEDULE[6])),
+      };
+      for (const [day, dayData] of Object.entries(parsed)) {
+        const d = parseInt(day);
+        schedule[d] = {
+          type: dayData.type,
+          exercises: (dayData.exercises || []).map((ex, i) => ({
+            id: `ai-${d}-${i}`,
+            name: ex.name,
+            ...(ex.sets ? { sets: ex.sets, reps: ex.reps || '10 reps' } : {}),
+            ...(ex.duration ? { duration: ex.duration } : {}),
+            ...(ex.note ? { note: ex.note } : {}),
+          })),
+        };
+      }
+      return { weekOf: mondayStr, aiGenerated: true, schedule };
+    }
+
+    function ensureWeeklySchedule() {
+      const mondayStr = getWeekMonday();
+      const stored = JSON.parse(localStorage.getItem(WEEKLY_SCHEDULE_KEY) || 'null');
+      if (stored && stored.weekOf === mondayStr) return;
+
+      // Generate static schedule immediately (synchronous, instant)
+      const generated = generateWeekSchedule(mondayStr);
+      localStorage.setItem(WEEKLY_SCHEDULE_KEY, JSON.stringify(generated));
+
+      // If AI prefs exist, regenerate in background and update when ready
+      const prefs = JSON.parse(localStorage.getItem(HEALTH_PREFS_KEY) || '{}');
+      if (prefs.apiKey && prefs.context) {
+        generateAISchedule(mondayStr, prefs, prefs.apiKey).then(aiGen => {
+          localStorage.setItem(WEEKLY_SCHEDULE_KEY, JSON.stringify(aiGen));
+          loadHealthSchedule();
+          renderHealth();
+          showToast('AI plan ready for this week');
+        }).catch(err => console.warn('AI schedule failed, using static:', err.message));
+      }
+    }
 
     function getHealthExtra(dateStr) {
       const all = JSON.parse(localStorage.getItem(HEALTH_EXTRA_KEY) || '{}');
@@ -3004,15 +3415,26 @@ Format tips:
       all[dateStr] = all[dateStr].filter(e => e.id !== exId);
       localStorage.setItem(HEALTH_EXTRA_KEY, JSON.stringify(all));
     }
+
+    function updateHealthExtra(dateStr, exId, updatedEx) {
+      const all = JSON.parse(localStorage.getItem(HEALTH_EXTRA_KEY) || '{}');
+      if (!all[dateStr]) return;
+      const idx = all[dateStr].findIndex(e => e.id === exId);
+      if (idx === -1) return;
+      all[dateStr][idx] = updatedEx;
+      localStorage.setItem(HEALTH_EXTRA_KEY, JSON.stringify(all));
+    }
     let healthSchedule = {};
 
     function loadHealthSchedule() {
-      const saved = localStorage.getItem(HEALTH_SCHEDULE_KEY);
-      healthSchedule = saved ? JSON.parse(saved) : JSON.parse(JSON.stringify(DEFAULT_HEALTH_SCHEDULE));
+      const weekly = JSON.parse(localStorage.getItem(WEEKLY_SCHEDULE_KEY) || 'null');
+      healthSchedule = weekly ? weekly.schedule : JSON.parse(JSON.stringify(DEFAULT_HEALTH_SCHEDULE));
     }
 
     function saveHealthSchedule() {
-      localStorage.setItem(HEALTH_SCHEDULE_KEY, JSON.stringify(healthSchedule));
+      const stored = JSON.parse(localStorage.getItem(WEEKLY_SCHEDULE_KEY) || '{}');
+      stored.schedule = healthSchedule;
+      localStorage.setItem(WEEKLY_SCHEDULE_KEY, JSON.stringify(stored));
     }
 
     // ============ ID GENERATION ============
@@ -3164,7 +3586,7 @@ Format tips:
         <div class="goal-card">
           <div class="goal-tasks" style="display:block;border-top:none;">
             ${extras.map(ex => {
-              const tag = ex.duration ? ex.duration : `${ex.sets} × ${ex.reps}`;
+              const tag = formatSetLog(ex);
               return `
                 <div class="task-item completed" data-extra-id="${ex.id}">
                   <div class="task-checkbox checked" style="pointer-events:none;">
@@ -3175,6 +3597,9 @@ Format tips:
                     <div class="task-meta"><span class="task-time">${escapeHtml(tag)}</span></div>
                     ${ex.note ? `<div style="font-size:12px;color:var(--text-tertiary);margin-top:4px;">${escapeHtml(ex.note)}</div>` : ''}
                   </div>
+                  <button class="config-action-btn" data-edit-extra="${ex.id}" style="flex-shrink:0;" aria-label="Edit">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                  </button>
                   <button class="config-action-btn danger" data-delete-extra="${ex.id}" style="flex-shrink:0;" aria-label="Remove">
                     <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6M9 6V4h6v2"/></svg>
                   </button>
@@ -3198,12 +3623,38 @@ Format tips:
           if (d) renderHealth(parseInt(d.dataset.stripDay));
         });
         view.querySelector('#log-activity-btn').addEventListener('click', () => openLogSheet(displayDateStr));
+
+        // Extras (logged activities): edit + delete
+        view.querySelectorAll('[data-edit-extra]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const ex = getHealthExtra(displayDateStr).find(e => e.id === btn.dataset.editExtra);
+            if (ex) openLogSheet(displayDateStr, ex);
+          });
+        });
         view.querySelectorAll('[data-delete-extra]').forEach(btn => {
           btn.addEventListener('click', () => {
             deleteHealthExtra(displayDateStr, btn.dataset.deleteExtra);
             renderHealth();
           });
         });
+
+        // Planned exercises: inline edit + delete + add
+        view.querySelectorAll('[data-health-edit]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const ex = (healthSchedule[displayDow]?.exercises || []).find(e => e.id === btn.dataset.healthEdit);
+            if (ex) openExerciseSheet(displayDow, ex);
+          });
+        });
+        view.querySelectorAll('[data-health-delete]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const ex = (healthSchedule[displayDow]?.exercises || []).find(e => e.id === btn.dataset.healthDelete);
+            if (ex && confirm(`Remove "${ex.name}" from this week's plan?`)) {
+              deleteExercise(displayDow, btn.dataset.healthDelete);
+              renderHealth();
+            }
+          });
+        });
+        view.querySelector('#health-add-exercise')?.addEventListener('click', () => openExerciseSheet(displayDow));
       }
 
       if (schedule.isRest) {
@@ -3255,6 +3706,10 @@ Format tips:
               <div class="task-meta"><span class="task-time">${escapeHtml(tag)}</span></div>
               ${ex.note ? `<div style="font-size:12px;color:var(--text-tertiary);margin-top:4px;">${escapeHtml(ex.note)}</div>` : ''}
             </div>
+            <div style="display:flex;gap:2px;flex-shrink:0;">
+              <button class="config-action-btn" data-health-edit="${ex.id}" aria-label="Edit">${SVG_EDIT}</button>
+              <button class="config-action-btn danger" data-health-delete="${ex.id}" aria-label="Remove">${SVG_TRASH}</button>
+            </div>
           </div>
         `;
       }).join('');
@@ -3269,11 +3724,13 @@ Format tips:
             <div class="goal-progress-fill" style="width:${percent}%"></div>
           </div>
         </div>
-        ${totalCount === 0 ? `<div class="card" style="text-align:center;padding:24px;color:var(--text-tertiary);font-size:14px;">No exercises configured. Tap the settings icon to add some.</div>` : `
-        <div class="section-header">${DAY_NAMES[displayDow]}'s Workout</div>
+        <div class="section-header">${DAY_NAMES[displayDow]}'s Plan</div>
         <div class="goal-card">
-          <div class="goal-tasks" style="display:block;border-top:none;">${exercisesHtml}</div>
-        </div>`}
+          <div class="goal-tasks" style="display:block;border-top:none;">
+            ${exercisesHtml}
+            <button class="add-row" id="health-add-exercise">${SVG_PLUS} Add exercise</button>
+          </div>
+        </div>
         ${extrasHtml}
         ${logBtnHtml}
       `;
@@ -3294,18 +3751,13 @@ Format tips:
 
     // ============ RENDER: PROGRESS VIEW ============
     let progressTab = 'health';
+    let healthProgressPeriod = 'month'; // 'week' | 'month' | 'year'
 
     function renderProgress(tab) {
       if (tab !== undefined) progressTab = tab;
       const view = document.getElementById('view-progress');
       const today = new Date();
       const todayStr = today.toISOString().split('T')[0];
-
-      // ── Health tab content ──
-      const dow = today.getDay();
-      const daysToMon = dow === 0 ? 6 : dow - 1;
-      const thisMonday = new Date(today);
-      thisMonday.setDate(today.getDate() - daysToMon);
       const hs = JSON.parse(localStorage.getItem(HEALTH_STATE_KEY) || '{}');
 
       function dayStatus(d) {
@@ -3316,54 +3768,109 @@ Format tips:
         const extras = getHealthExtra(dateStr);
         if (sched.isRest) return extras.length > 0 ? 'complete' : 'rest';
         const exs = sched.exercises || [];
-        if (exs.length === 0) return extras.length > 0 ? 'complete' : 'missed';
-        return exs.every(ex => hs[ex.id] === dateStr) ? 'complete' : 'missed';
+        if (extras.length > 0) return 'complete';
+        if (exs.length === 0) return 'missed';
+        return exs.some(ex => hs[ex.id] === dateStr) ? 'complete' : 'missed';
       }
 
-      const DAY_ROW_LABELS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
-      let calRows = '';
-      for (let row = 0; row < 7; row++) {
-        let cells = '';
-        for (let col = 0; col < 4; col++) {
-          const d = new Date(thisMonday);
-          d.setDate(thisMonday.getDate() - (3 - col) * 7 + row);
-          const status = dayStatus(d);
+      function dot(d, size) {
+        const ds = d.toISOString().split('T')[0];
+        const st = dayStatus(d);
+        const isToday = ds === todayStr;
+        const style = st === 'complete' ? `background:var(--success);`
+          : st === 'rest'   ? `background:var(--border-mid);`
+          : st === 'missed' ? `background:transparent;border:1.5px solid var(--border-mid);`
+          :                   `background:transparent;border:1px solid var(--border);opacity:0.2;`;
+        const ring = isToday ? `box-shadow:0 0 0 2px var(--accent);` : '';
+        return `<div style="width:${size}px;height:${size}px;border-radius:50%;flex-shrink:0;${style}${ring}"></div>`;
+      }
+
+      // Week: Mon–Sun of current week
+      function buildWeekView() {
+        const dow = today.getDay();
+        const mon = new Date(today); mon.setDate(today.getDate() - (dow === 0 ? 6 : dow - 1));
+        const LABELS = ['M','T','W','T','F','S','S'];
+        let cols = '';
+        for (let i = 0; i < 7; i++) {
+          const d = new Date(mon); d.setDate(mon.getDate() + i);
           const isToday = d.toISOString().split('T')[0] === todayStr;
-          cells += `<div class="cal-cell ${status}${isToday ? ' today-ring' : ''}"></div>`;
+          cols += `<div style="display:flex;flex-direction:column;align-items:center;gap:6px;flex:1;">
+            <div style="font-size:11px;font-weight:${isToday ? '700' : '500'};color:${isToday ? 'var(--text-primary)' : 'var(--text-tertiary)'};">${LABELS[i]}</div>
+            ${dot(d, 24)}
+            <div style="font-size:10px;color:${isToday ? 'var(--accent)' : 'var(--text-tertiary)'};font-weight:${isToday ? '700' : '400'};">${d.getDate()}</div>
+          </div>`;
         }
-        calRows += `<div class="cal-day-label">${DAY_ROW_LABELS[row]}</div>${cells}`;
+        return `<div style="display:flex;gap:4px;padding:8px 0 12px;">${cols}</div>`;
       }
 
-      // Streak: only days where you actually did something count toward the number.
-      // Pure rest days (nothing logged) are transparent — they don't add to the streak
-      // but they don't break it either.
+      // Month: current month calendar grid with dots + date numbers
+      function buildMonthView() {
+        const yr = today.getFullYear(), mo = today.getMonth();
+        const first = new Date(yr, mo, 1);
+        const offset = first.getDay() === 0 ? 6 : first.getDay() - 1;
+        const days = new Date(yr, mo + 1, 0).getDate();
+        const LABELS = ['M','T','W','T','F','S','S'];
+        const hdr = LABELS.map(l =>
+          `<div style="text-align:center;font-size:10px;color:var(--text-tertiary);font-weight:600;padding-bottom:6px;">${l}</div>`
+        ).join('');
+        let cells = '';
+        for (let i = 0; i < offset; i++) cells += `<div></div>`;
+        for (let day = 1; day <= days; day++) {
+          const d = new Date(yr, mo, day);
+          const isToday = d.toISOString().split('T')[0] === todayStr;
+          cells += `<div style="display:flex;flex-direction:column;align-items:center;gap:3px;padding-bottom:4px;">
+            ${dot(d, 16)}
+            <div style="font-size:8px;color:${isToday ? 'var(--accent)' : 'var(--text-muted)'};font-weight:${isToday ? '700' : '400'};">${day}</div>
+          </div>`;
+        }
+        return `
+          <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;">${hdr}</div>
+          <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px 2px;margin-bottom:8px;">${cells}</div>
+        `;
+      }
+
+      // Year: 12 mini month grids, current calendar year, 4×3 layout
+      function buildYearView() {
+        const yr = today.getFullYear();
+        let months = '';
+        for (let m = 0; m < 12; m++) {
+          const first = new Date(yr, m, 1);
+          const days = new Date(yr, m + 1, 0).getDate();
+          const offset = first.getDay() === 0 ? 6 : first.getDay() - 1;
+          const label = first.toLocaleDateString('en-US', { month: 'short' });
+          let cells = '';
+          for (let i = 0; i < offset; i++) cells += `<div style="width:7px;height:7px;"></div>`;
+          for (let day = 1; day <= days; day++) {
+            cells += dot(new Date(yr, m, day), 7);
+          }
+          months += `<div>
+            <div style="font-size:9px;font-weight:600;color:var(--text-tertiary);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.3px;">${label}</div>
+            <div style="display:grid;grid-template-columns:repeat(7,7px);gap:2px;">${cells}</div>
+          </div>`;
+        }
+        return `<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px 8px;padding-bottom:8px;">${months}</div>`;
+      }
+
+      // Streak calc
       let streak = 0;
       for (let i = 0; i < 180; i++) {
-        const d = new Date(today);
-        d.setDate(today.getDate() - i);
+        const d = new Date(today); d.setDate(today.getDate() - i);
         const dateStr = d.toISOString().split('T')[0];
         if (dateStr > todayStr) continue;
-        const dw = d.getDay();
-        const sched = healthSchedule[dw];
+        const sched = healthSchedule[d.getDay()];
         const extras = getHealthExtra(dateStr);
-        if (sched.isRest) {
-          if (extras.length > 0) streak++;
-          // pure rest day: transparent — skip without counting or breaking
-          continue;
-        }
+        if (sched.isRest) { if (extras.length > 0) streak++; continue; }
         const exs = sched.exercises || [];
         const done = exs.length > 0 && exs.every(ex => hs[ex.id] === dateStr);
         if (done || extras.length > 0) { streak++; } else { break; }
       }
 
-      // Active days this month: any day where you completed planned exercises OR logged extras.
+      // Active days this month
       const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
-      let activeDays = 0, daysElapsed = 0;
+      let activeDays = 0;
       for (const d = new Date(monthStart); d <= today; d.setDate(d.getDate() + 1)) {
-        daysElapsed++;
         const dateStr = d.toISOString().split('T')[0];
-        const dw = d.getDay();
-        const sched = healthSchedule[dw];
+        const sched = healthSchedule[d.getDay()];
         const extras = getHealthExtra(dateStr);
         if (extras.length > 0) { activeDays++; continue; }
         if (!sched.isRest) {
@@ -3372,21 +3879,33 @@ Format tips:
         }
       }
 
+      const legend = `<div style="display:flex;gap:14px;margin:12px 0;flex-wrap:wrap;">
+        <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-secondary);">
+          <div style="width:9px;height:9px;border-radius:50%;background:var(--success);"></div>Active
+        </div>
+        <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-secondary);">
+          <div style="width:9px;height:9px;border-radius:50%;background:var(--border-mid);"></div>Rest
+        </div>
+        <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-secondary);">
+          <div style="width:9px;height:9px;border-radius:50%;border:1.5px solid var(--border-mid);"></div>Missed
+        </div>
+      </div>`;
+
+      const periodBtns = ['week','month','year'].map(p => {
+        const active = healthProgressPeriod === p;
+        return `<button data-hperiod="${p}" style="flex:1;padding:7px 0;font-size:12px;font-weight:500;border-radius:var(--radius-sm);border:1px solid ${active ? 'var(--accent)' : 'var(--border)'};background:${active ? 'var(--accent-dim)' : 'none'};color:${active ? 'var(--accent)' : 'var(--text-tertiary)'};cursor:pointer;">${p.charAt(0).toUpperCase() + p.slice(1)}</button>`;
+      }).join('');
+
+      const healthView = healthProgressPeriod === 'week' ? buildWeekView()
+        : healthProgressPeriod === 'month' ? buildMonthView()
+        : buildYearView();
+
       const healthPanelHtml = `
         <div class="card" style="margin-bottom:12px;">
-          <div class="progress-calendar" style="margin-bottom:14px;">${calRows}</div>
-          <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
-            <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-secondary);">
-              <div style="width:10px;height:10px;border-radius:3px;background:var(--success);"></div>Done
-            </div>
-            <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-secondary);">
-              <div style="width:10px;height:10px;border-radius:3px;background:var(--border-mid);"></div>Rest
-            </div>
-            <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-secondary);">
-              <div style="width:10px;height:10px;border-radius:3px;border:2px solid var(--border-mid);"></div>Missed
-            </div>
-          </div>
-          <div style="display:flex;gap:10px;">
+          <div style="display:flex;gap:6px;margin-bottom:16px;">${periodBtns}</div>
+          ${healthView}
+          ${legend}
+          <div style="display:flex;gap:10px;margin-top:4px;">
             <div style="flex:1;text-align:center;padding:12px 8px;background:var(--surface-hover);border-radius:var(--radius-sm);">
               <div style="font-size:26px;font-weight:700;color:var(--accent);">${streak}</div>
               <div style="font-size:11px;color:var(--text-secondary);margin-top:2px;">day streak</div>
@@ -3399,39 +3918,34 @@ Format tips:
         </div>
       `;
 
-      // ── Goals tab content ──
+      // ── Focus tab content (formerly Goals) ──
       const overall = getOverallProgress();
-      const goalsPanelHtml = `
-        ${state.goals.length === 0
-          ? `<div class="card" style="text-align:center;padding:20px;color:var(--text-tertiary);font-size:14px;">No goals yet — add some in Settings.</div>`
-          : `<div class="card" style="margin-bottom:8px;padding:14px 16px;">
-               <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-tertiary);margin-bottom:8px;">Overall · ${escapeHtml(state.quarter)}</div>
-               <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:8px;">
-                 <span style="font-size:26px;font-weight:700;color:var(--success);">${overall.percent}%</span>
-                 <span style="font-size:13px;color:var(--text-secondary);">${overall.completed}/${overall.total} tasks</span>
-               </div>
-               <div class="goal-progress-bar" style="height:5px;"><div class="goal-progress-fill" style="width:${overall.percent}%"></div></div>
+      const goalsPanelHtml = state.goals.length === 0
+        ? `<div class="card" style="text-align:center;padding:20px;color:var(--text-tertiary);font-size:14px;">No focus areas yet — add some in Settings.</div>`
+        : `<div class="card" style="margin-bottom:8px;padding:14px 16px;">
+             <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-tertiary);margin-bottom:8px;">Overall · ${escapeHtml(state.quarter)}</div>
+             <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:8px;">
+               <span style="font-size:26px;font-weight:700;color:var(--success);">${overall.percent}%</span>
+               <span style="font-size:13px;color:var(--text-secondary);">${overall.completed}/${overall.total} tasks</span>
              </div>
-             ${state.goals.map((goal, i) => {
-               const p = getGoalProgress(goal);
-               return `
-                 <div class="card" style="margin-bottom:8px;padding:14px 16px;">
-                   <div style="display:flex;align-items:flex-start;gap:10px;">
-                     <div class="goal-number" style="flex-shrink:0;margin-top:1px;">${i + 1}</div>
-                     <div style="flex:1;min-width:0;">
-                       <div style="font-size:14px;font-weight:500;margin-bottom:6px;line-height:1.3;">${escapeHtml(goal.title)}</div>
-                       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-                         <span style="font-size:12px;color:var(--text-secondary);">${p.completed}/${p.total} tasks</span>
-                         <span style="font-size:13px;font-weight:600;color:var(--success);">${p.percent}%</span>
-                       </div>
-                       <div class="goal-progress-bar" style="height:4px;"><div class="goal-progress-fill" style="width:${p.percent}%"></div></div>
-                     </div>
+             <div class="goal-progress-bar" style="height:5px;"><div class="goal-progress-fill" style="width:${overall.percent}%"></div></div>
+           </div>
+           ${state.goals.map((goal, i) => {
+             const p = getGoalProgress(goal);
+             return `<div class="card" style="margin-bottom:8px;padding:14px 16px;">
+               <div style="display:flex;align-items:flex-start;gap:10px;">
+                 <div class="goal-number" style="flex-shrink:0;margin-top:1px;">${i + 1}</div>
+                 <div style="flex:1;min-width:0;">
+                   <div style="font-size:14px;font-weight:500;margin-bottom:6px;line-height:1.3;">${escapeHtml(goal.title)}</div>
+                   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                     <span style="font-size:12px;color:var(--text-secondary);">${p.completed}/${p.total} tasks</span>
+                     <span style="font-size:13px;font-weight:600;color:var(--success);">${p.percent}%</span>
                    </div>
+                   <div class="goal-progress-bar" style="height:4px;"><div class="goal-progress-fill" style="width:${p.percent}%"></div></div>
                  </div>
-               `;
-             }).join('')}`
-        }
-      `;
+               </div>
+             </div>`;
+           }).join('')}`;
 
       view.innerHTML = `
         <div class="header" style="margin-bottom:20px;">
@@ -3440,7 +3954,7 @@ Format tips:
         </div>
         <div class="config-tabs">
           <button class="config-tab${progressTab === 'health' ? ' active' : ''}" data-ptab="health">Health</button>
-          <button class="config-tab${progressTab === 'goals' ? ' active' : ''}" data-ptab="goals">Goals</button>
+          <button class="config-tab${progressTab === 'goals' ? ' active' : ''}" data-ptab="goals">Focus</button>
         </div>
         <div style="margin-top:16px;">
           ${progressTab === 'health' ? healthPanelHtml : goalsPanelHtml}
@@ -3449,6 +3963,9 @@ Format tips:
 
       view.querySelectorAll('[data-ptab]').forEach(btn => {
         btn.addEventListener('click', () => renderProgress(btn.dataset.ptab));
+      });
+      view.querySelectorAll('[data-hperiod]').forEach(btn => {
+        btn.addEventListener('click', () => { healthProgressPeriod = btn.dataset.hperiod; renderProgress(); });
       });
     }
 
@@ -3600,7 +4117,7 @@ Format tips:
         }
         if (editSheetState.exId) { updateExercise(editSheetState.dayIndex, editSheetState.exId, exData); }
         else { addExercise(editSheetState.dayIndex, exData); }
-        closeEditSheet(); renderConfig(); renderHealth();
+        closeEditSheet(); renderHealth();
       });
     }
 
@@ -3648,34 +4165,89 @@ Format tips:
       });
     }
 
-    function openLogSheet(dateStr) {
-      let isDuration = false;
+    function formatSetLog(ex) {
+      if (ex.setLog && ex.setLog.length > 0) {
+        const allReps = ex.setLog.every(r => r.unit === 'reps');
+        if (allReps) {
+          const s = ex.setLog.length;
+          return `${s} set${s > 1 ? 's' : ''}: ${ex.setLog.map(r => r.value).join(', ')} reps`;
+        }
+        return ex.setLog.map(r => `${r.value} ${r.unit}`).join(' · ');
+      }
+      // Backward compat with old format
+      if (ex.duration) return ex.duration;
+      if (ex.sets && ex.reps) return `${ex.sets} × ${ex.reps}`;
+      return '—';
+    }
+
+    function getActivityPool() {
+      const byName = {};
+
+      // Priority 3 (lowest): built-in corpus — provides units[] canonical list
+      ACTIVITY_CORPUS.forEach(c => {
+        byName[c.name] = { name: c.name, units: c.units || ['reps'], count: 0, lastUsed: null };
+      });
+
+      // Priority 2: health schedule — may add unknown activities; inherit units from corpus if known
+      Object.values(healthSchedule).forEach(day => {
+        (day.exercises || []).forEach(ex => {
+          if (!byName[ex.name]) byName[ex.name] = { name: ex.name, units: ['reps'], count: 0, lastUsed: null };
+        });
+      });
+
+      // Priority 1 (highest): logged history — boosts count/recency, records last setLog
+      const allExtras = JSON.parse(localStorage.getItem(HEALTH_EXTRA_KEY) || '{}');
+      Object.keys(allExtras).sort().reverse().forEach(date => {
+        (allExtras[date] || []).forEach(ex => {
+          if (!byName[ex.name]) byName[ex.name] = { name: ex.name, units: ['reps'], count: 0, lastUsed: null };
+          byName[ex.name].count++;
+          if (!byName[ex.name].lastUsed) {
+            byName[ex.name].lastUsed = date;
+            byName[ex.name].lastSetLog = ex.setLog; // for pre-filling
+          }
+        });
+      });
+
+      return Object.values(byName).sort((a, b) => {
+        if (b.count !== a.count) return b.count - a.count;
+        if (a.lastUsed && b.lastUsed) return b.lastUsed.localeCompare(a.lastUsed);
+        if (a.lastUsed) return -1;
+        if (b.lastUsed) return 1;
+        return a.name.localeCompare(b.name);
+      });
+    }
+
+    function openLogSheet(dateStr, existingEx = null) {
+      const isEdit = !!existingEx;
+      const pool = getActivityPool();
+      // Chips: show only from history/schedule (count > 0 or in schedule), max 4
+      const chipCandidates = pool.filter(p => p.count > 0 || Object.values(healthSchedule).some(d => (d.exercises||[]).some(e => e.name === p.name)));
+      const chips = isEdit ? [] : chipCandidates.slice(0, 4); // no chips in edit mode
+      // Set rows state: [{unit, value}]
+      let activeUnits = ['reps'];
+      let setRows = [{ unit: 'reps', value: '' }];
+
+      const chipsHtml = chips.length === 0 ? '' : `
+        <div class="form-field" style="margin-bottom:16px;">
+          <label class="form-label">Quick log</label>
+          <div class="activity-chips">
+            ${chips.map(c => `<button class="activity-chip" data-chip-name="${escapeHtml(c.name)}">${escapeHtml(c.name)}</button>`).join('')}
+          </div>
+        </div>
+      `;
+
       document.getElementById('edit-sheet').innerHTML = `
-        <div class="edit-sheet-title">Log Activity</div>
-        <div class="form-field">
+        <div class="edit-sheet-title">${isEdit ? 'Edit Activity' : 'Log Activity'}</div>
+        ${chipsHtml}
+        <div class="form-field" style="position:relative;margin-bottom:14px;">
           <label class="form-label">Exercise</label>
-          <input class="form-input" id="ef-log-name" type="text" placeholder="e.g. Pull-ups" autocomplete="off">
+          <input class="form-input" id="ef-log-name" type="text" placeholder="Search or type…" autocomplete="off">
+          <div class="activity-suggestions" id="ef-log-suggestions"></div>
         </div>
-        <div class="form-field">
-          <label class="form-label">Type</label>
-          <div class="selector-options" style="gap:6px;" id="ef-log-type">
-            <button class="selector-btn btn-sm selected" data-dur="0">Sets &amp; Reps</button>
-            <button class="selector-btn btn-sm" data-dur="1">Duration</button>
-          </div>
-        </div>
-        <div id="ef-log-setsreps" style="display:flex;gap:10px;">
-          <div class="form-field" style="flex:1;">
-            <label class="form-label">Sets</label>
-            <input class="form-input" id="ef-log-sets" type="number" min="1" max="20" value="3">
-          </div>
-          <div class="form-field" style="flex:2;">
-            <label class="form-label">Reps</label>
-            <input class="form-input" id="ef-log-reps" type="text" placeholder="10 reps">
-          </div>
-        </div>
-        <div id="ef-log-dur-field" class="form-field" style="display:none;">
-          <label class="form-label">Duration</label>
-          <input class="form-input" id="ef-log-dur" type="text" placeholder="e.g. 20 min">
+        <div class="form-field" id="ef-log-rows-field">
+          <label class="form-label" id="ef-log-rows-label">Sets</label>
+          <div class="set-rows" id="ef-log-setrows"></div>
+          <button type="button" id="ef-log-add-set" class="add-set-btn">+ Add set</button>
         </div>
         <div class="form-field">
           <label class="form-label">Note (optional)</label>
@@ -3686,31 +4258,140 @@ Format tips:
           <button class="btn btn-primary" id="ef-log-save">Log it</button>
         </div>
       `;
+
       document.getElementById('edit-overlay').classList.add('visible');
-      document.getElementById('ef-log-name').focus();
-      document.querySelectorAll('#ef-log-type .selector-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          document.querySelectorAll('#ef-log-type .selector-btn').forEach(b => b.classList.remove('selected'));
-          btn.classList.add('selected');
-          isDuration = btn.dataset.dur === '1';
-          document.getElementById('ef-log-setsreps').style.display = isDuration ? 'none' : 'flex';
-          document.getElementById('ef-log-dur-field').style.display = isDuration ? 'block' : 'none';
+      const nameInput = document.getElementById('ef-log-name');
+      nameInput.focus();
+
+      function isRepsOnly() { return activeUnits.length === 1 && activeUnits[0] === 'reps'; }
+
+      function renderSetRows() {
+        const repsOnly = isRepsOnly();
+        document.getElementById('ef-log-rows-label').textContent = repsOnly ? 'Sets' : 'Amount';
+        document.getElementById('ef-log-add-set').textContent = repsOnly ? '+ Add set' : '+ Add entry';
+        const showRemove = setRows.length > 1;
+        document.getElementById('ef-log-setrows').innerHTML = setRows.map((row, i) => {
+          const labelHtml = repsOnly
+            ? `<span class="set-row-label">Set ${i + 1}</span>`
+            : '';
+          const unitHtml = activeUnits.length === 1
+            ? `<span class="set-row-unit-label">${activeUnits[0]}</span>`
+            : `<select class="set-row-unit" data-row="${i}">
+                ${activeUnits.map(u => `<option value="${u}"${u === row.unit ? ' selected' : ''}>${u}</option>`).join('')}
+               </select>`;
+          return `<div class="set-row">
+            ${labelHtml}
+            <input class="form-input set-row-value" type="number" step="any" min="0" placeholder="0" value="${row.value !== '' ? row.value : ''}" data-row="${i}">
+            ${unitHtml}
+            <button class="set-row-remove" data-row="${i}" style="visibility:${showRemove ? 'visible' : 'hidden'};">−</button>
+          </div>`;
+        }).join('');
+
+        // Wire row interactions
+        document.querySelectorAll('.set-row-value').forEach(input => {
+          input.addEventListener('input', () => { setRows[+input.dataset.row].value = input.value; });
+        });
+        document.querySelectorAll('.set-row-unit').forEach(sel => {
+          sel.addEventListener('change', () => { setRows[+sel.dataset.row].unit = sel.value; });
+        });
+        document.querySelectorAll('.set-row-remove').forEach(btn => {
+          btn.addEventListener('click', () => {
+            setRows.splice(+btn.dataset.row, 1);
+            renderSetRows();
+          });
+        });
+      }
+
+      function applyActivity(item) {
+        nameInput.value = item.name;
+        activeUnits = item.units || ['reps'];
+        // Pre-fill from last logged setLog if available, else start fresh
+        if (item.lastSetLog && item.lastSetLog.length > 0) {
+          setRows = item.lastSetLog.map(r => ({ unit: activeUnits.includes(r.unit) ? r.unit : activeUnits[0], value: r.value }));
+        } else {
+          setRows = [{ unit: activeUnits[0], value: '' }];
+        }
+        renderSetRows();
+        document.getElementById('ef-log-suggestions').classList.remove('open');
+        // Focus first value input
+        const first = document.querySelector('.set-row-value');
+        if (first) first.focus();
+      }
+
+      // Pre-fill if editing
+      if (isEdit) {
+        nameInput.value = existingEx.name;
+        document.getElementById('ef-log-note').value = existingEx.note || '';
+        const poolItem = pool.find(p => p.name === existingEx.name);
+        activeUnits = (poolItem && poolItem.units) || ['reps'];
+        if (existingEx.setLog && existingEx.setLog.length > 0) {
+          setRows = existingEx.setLog.map(r => ({ unit: activeUnits.includes(r.unit) ? r.unit : activeUnits[0], value: r.value }));
+        } else if (existingEx.duration) {
+          activeUnits = activeUnits.length > 1 ? activeUnits : ['min'];
+          setRows = [{ unit: activeUnits[0], value: existingEx.duration }];
+        } else if (existingEx.sets && existingEx.reps) {
+          // backward compat: convert old sets/reps to rows
+          const reps = parseInt(existingEx.reps) || existingEx.reps;
+          setRows = Array.from({ length: existingEx.sets }, () => ({ unit: 'reps', value: reps }));
+        }
+      }
+      renderSetRows(); // initial render
+
+      // Chip clicks
+      document.querySelectorAll('.activity-chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+          const item = pool.find(p => p.name === chip.dataset.chipName);
+          if (item) applyActivity(item);
         });
       });
+
+      // Add set/entry
+      document.getElementById('ef-log-add-set').addEventListener('click', () => {
+        setRows.push({ unit: activeUnits[0], value: '' });
+        renderSetRows();
+        const inputs = document.querySelectorAll('.set-row-value');
+        if (inputs.length) inputs[inputs.length - 1].focus();
+      });
+
+      // Live search
+      const suggestionsEl = document.getElementById('ef-log-suggestions');
+      nameInput.addEventListener('input', () => {
+        const q = nameInput.value.trim().toLowerCase();
+        if (!q) { suggestionsEl.classList.remove('open'); return; }
+        const matches = pool.filter(p => p.name.toLowerCase().includes(q)).slice(0, 6);
+        if (!matches.length) { suggestionsEl.classList.remove('open'); return; }
+        suggestionsEl.innerHTML = matches.map(m => {
+          const units = m.units || ['reps'];
+          const tag = units.length === 1 ? units[0] : units.join(', ');
+          return `<div class="activity-suggestion-item" data-idx="${pool.indexOf(m)}">
+            <div>${escapeHtml(m.name)}</div>
+            <div class="activity-suggestion-meta">${escapeHtml(tag)}</div>
+          </div>`;
+        }).join('');
+        suggestionsEl.classList.add('open');
+        suggestionsEl.querySelectorAll('.activity-suggestion-item').forEach(item => {
+          item.addEventListener('mousedown', e => {
+            e.preventDefault();
+            applyActivity(pool[+item.dataset.idx]);
+          });
+        });
+      });
+
+      nameInput.addEventListener('blur', () => {
+        setTimeout(() => suggestionsEl.classList.remove('open'), 150);
+      });
+
+      // Save
       document.getElementById('ef-log-save').addEventListener('click', () => {
-        const name = document.getElementById('ef-log-name').value.trim();
+        const name = nameInput.value.trim();
         if (!name) return;
         const note = document.getElementById('ef-log-note').value.trim();
-        let exData;
-        if (isDuration) {
-          const duration = document.getElementById('ef-log-dur').value.trim() || '—';
-          exData = { id: generateId(), name, duration, ...(note ? { note } : {}) };
-        } else {
-          const sets = parseInt(document.getElementById('ef-log-sets').value) || 1;
-          const reps = document.getElementById('ef-log-reps').value.trim() || '—';
-          exData = { id: generateId(), name, sets, reps, ...(note ? { note } : {}) };
-        }
-        addHealthExtra(dateStr, exData);
+        const filledRows = setRows.filter(r => r.value !== '' && r.value !== null && r.value !== undefined);
+        if (!filledRows.length) return;
+        const setLog = filledRows.map(r => ({ unit: r.unit, value: Number(r.value) }));
+        const entry = { id: isEdit ? existingEx.id : generateId(), name, setLog, ...(note ? { note } : {}) };
+        if (isEdit) updateHealthExtra(dateStr, existingEx.id, entry);
+        else addHealthExtra(dateStr, entry);
         closeEditSheet();
         renderHealth();
       });
@@ -3818,58 +4499,40 @@ Format tips:
         <button class="btn btn-ghost btn-block" style="margin-top:8px;" data-action="add-goal">${SVG_PLUS} Add goal</button>
       `;
 
-      // Health tab HTML
+      // Health preferences tab HTML
+      const prefs = JSON.parse(localStorage.getItem(HEALTH_PREFS_KEY) || '{}');
+      const hasKey = !!(prefs.apiKey);
       const healthTabHtml = `
-        <div class="section-header" style="margin-bottom:10px;">Weekly Schedule</div>
-        ${DISPLAY_ORDER.map(d => {
-          const day = healthSchedule[d];
-          const dayName = DAY_NAMES[d];
-          if (day.isRest) {
-            return `
-              <div class="card" style="margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;">
-                <div>
-                  <div style="font-size:14px;font-weight:500;">${dayName}</div>
-                  <div style="font-size:12px;color:var(--text-tertiary);margin-top:2px;">Rest day</div>
-                </div>
-                <button class="btn btn-ghost btn-sm" data-action="toggle-rest" data-day="${d}">Make workout</button>
-              </div>
-            `;
-          }
-          return `
-            <div class="goal-card" style="margin-bottom:8px;" data-day="${d}">
-              <div class="goal-header">
-                <div class="goal-info">
-                  <div class="goal-title" style="font-size:14px;">${dayName}</div>
-                  <div class="goal-progress-text">${escapeHtml(day.type || 'Workout')} · ${(day.exercises || []).length} exercises</div>
-                </div>
-                <div style="display:flex;align-items:center;gap:2px;">
-                  <button class="config-action-btn" data-action="edit-day-type" data-day="${d}" aria-label="Rename">${SVG_EDIT}</button>
-                  <button class="config-action-btn danger" data-action="toggle-rest" data-day="${d}" title="Make rest day">${SVG_TRASH}</button>
-                  <div class="goal-chevron">${SVG_CHEV}</div>
-                </div>
-              </div>
-              <div class="goal-tasks">
-                ${(day.exercises || []).map(ex => {
-                  const tag = ex.duration ? ex.duration : `${ex.sets} × ${ex.reps}`;
-                  return `
-                    <div class="task-item" data-ex-id="${ex.id}">
-                      <div class="task-content">
-                        <div class="task-title">${escapeHtml(ex.name)}</div>
-                        <div class="task-meta"><span class="task-time">${escapeHtml(tag)}</span></div>
-                        ${ex.note ? `<div style="font-size:12px;color:var(--text-tertiary);margin-top:3px;">${escapeHtml(ex.note)}</div>` : ''}
-                      </div>
-                      <div style="display:flex;align-items:center;gap:2px;flex-shrink:0;">
-                        <button class="config-action-btn" data-action="edit-exercise" data-day="${d}" data-ex-id="${ex.id}" aria-label="Edit">${SVG_EDIT}</button>
-                        <button class="config-action-btn danger" data-action="delete-exercise" data-day="${d}" data-ex-id="${ex.id}" aria-label="Delete">${SVG_TRASH}</button>
-                      </div>
-                    </div>
-                  `;
-                }).join('')}
-                <button class="add-row" data-action="add-exercise" data-day="${d}">${SVG_PLUS} Add exercise</button>
-              </div>
-            </div>
-          `;
-        }).join('')}
+        <div class="section-header" style="margin-bottom:6px;">Your Focus</div>
+        <div style="font-size:12px;color:var(--text-secondary);margin-bottom:10px;line-height:1.5;">
+          Describe what you're working on or working around — injuries, goals, priorities. The app uses this to tailor your weekly plan.
+        </div>
+        <div class="form-field">
+          <textarea class="form-input" id="prefs-context" rows="3" placeholder="e.g. Recovering from an IT band issue. Want to strengthen glutes. No high-impact cardio for now." style="resize:vertical;">${escapeHtml(prefs.context || '')}</textarea>
+        </div>
+
+        <div class="section-header" style="margin-bottom:8px;margin-top:20px;">Fitness Level</div>
+        <div style="display:flex;gap:6px;margin-bottom:20px;">
+          ${['Beginner','Intermediate','Advanced'].map(l => {
+            const val = l.toLowerCase();
+            const active = (prefs.fitnessLevel || 'beginner') === val;
+            return `<button class="prefs-level-btn${active ? ' active' : ''}" data-level="${val}">${l}</button>`;
+          }).join('')}
+        </div>
+
+        <div class="section-header" style="margin-bottom:6px;">AI-Powered Plans</div>
+        <div style="font-size:12px;color:var(--text-secondary);margin-bottom:10px;line-height:1.5;">
+          Add your Claude API key to get personalized weekly plans based on your focus above. Your key is stored only on this device.
+        </div>
+        <div class="form-field">
+          <input class="form-input" id="prefs-api-key" type="password" placeholder="sk-ant-api03-…" autocomplete="off" value="${hasKey ? prefs.apiKey : ''}">
+        </div>
+        <div style="font-size:11px;color:var(--text-tertiary);margin-bottom:20px;">
+          Without an API key, the app picks exercises from a built-in pool each Monday.
+        </div>
+
+        <button class="btn btn-primary btn-block" id="prefs-save-btn">Save & Regenerate Plan</button>
+        <div id="prefs-status" style="text-align:center;font-size:12px;color:var(--text-secondary);margin-top:10px;min-height:18px;"></div>
       `;
 
       view.innerHTML = `
@@ -3904,13 +4567,43 @@ Format tips:
         });
       });
 
-      // Expand/collapse health day cards
-      view.querySelectorAll('[data-day] .goal-header').forEach(header => {
-        header.addEventListener('click', (e) => {
-          if (e.target.closest('[data-action]')) return;
-          header.closest('[data-day]').classList.toggle('expanded');
+      // Health preferences wiring
+      if (configTab === 'health') {
+        let currentLevel = JSON.parse(localStorage.getItem(HEALTH_PREFS_KEY) || '{}').fitnessLevel || 'beginner';
+
+        view.querySelectorAll('.prefs-level-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            currentLevel = btn.dataset.level;
+            view.querySelectorAll('.prefs-level-btn').forEach(b => b.classList.toggle('active', b.dataset.level === currentLevel));
+          });
         });
-      });
+
+        document.getElementById('prefs-save-btn').addEventListener('click', async () => {
+          const context = document.getElementById('prefs-context').value.trim();
+          const apiKey = document.getElementById('prefs-api-key').value.trim();
+          const newPrefs = { context, fitnessLevel: currentLevel, ...(apiKey ? { apiKey } : {}) };
+          localStorage.setItem(HEALTH_PREFS_KEY, JSON.stringify(newPrefs));
+
+          const status = document.getElementById('prefs-status');
+          status.textContent = apiKey && context ? 'Generating AI plan…' : 'Regenerating plan…';
+
+          const mondayStr = getWeekMonday();
+          try {
+            let generated;
+            if (apiKey && context) {
+              generated = await generateAISchedule(mondayStr, newPrefs, apiKey);
+            } else {
+              generated = generateWeekSchedule(mondayStr);
+            }
+            localStorage.setItem(WEEKLY_SCHEDULE_KEY, JSON.stringify(generated));
+            loadHealthSchedule();
+            status.textContent = generated.aiGenerated ? 'AI plan saved.' : 'Plan regenerated.';
+            setTimeout(() => { status.textContent = ''; }, 2500);
+          } catch (err) {
+            status.textContent = `Error: ${err.message}`;
+          }
+        });
+      }
 
       // Goals tab toolbar buttons
       if (configTab === 'goals') {
@@ -3953,19 +4646,6 @@ Format tips:
           return;
         }
         if (action === 'edit-quarter') { openQuarterSheet(); return; }
-        if (action === 'add-exercise') { openExerciseSheet(day); return; }
-        if (action === 'edit-exercise') {
-          const ex = (healthSchedule[day]?.exercises || []).find(e => e.id === exId);
-          if (ex) openExerciseSheet(day, ex);
-          return;
-        }
-        if (action === 'delete-exercise') {
-          const ex = (healthSchedule[day]?.exercises || []).find(e => e.id === exId);
-          if (ex && confirm(`Delete "${ex.name}"?`)) { deleteExercise(day, exId); renderConfig(); renderHealth(); }
-          return;
-        }
-        if (action === 'toggle-rest') { toggleDayRest(day); renderConfig(); renderHealth(); return; }
-        if (action === 'edit-day-type') { openDayTypeSheet(day); return; }
       });
     }
 
@@ -3981,7 +4661,7 @@ Format tips:
         if (!alreadyActive) {
           if (view === 'today') renderToday();
           if (view === 'health') { healthViewDay = null; renderHealth(); }
-          if (view === 'progress') { progressTab = 'health'; renderProgress(); }
+          if (view === 'progress') { progressTab = 'health'; healthProgressPeriod = 'month'; renderProgress(); }
         }
       });
     });
@@ -3992,9 +4672,10 @@ Format tips:
     initOnboarding();
     initLockScreen();
     loadState();
+    ensureWeeklySchedule();
     loadHealthSchedule();
-    renderToday();
     renderHealth();
+    renderToday();
   </script>
 </body>
 </html>
