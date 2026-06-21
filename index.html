@@ -1920,7 +1920,7 @@
 
   <script>
     // ============ VERSION ============
-    const APP_VERSION = '1.25';
+    const APP_VERSION = '1.26';
     document.getElementById('app-footer').innerHTML = `Northstar v${APP_VERSION} &copy; Setu Kathawate`;
 
     // ============ AUTH ============
@@ -4541,7 +4541,7 @@ Using the wrong attribute (e.g. "sets: 2, reps: '10 reps'" for meditation) is an
           Describe what you're working on or working around — injuries, goals, priorities. The app uses this to tailor your weekly plan.
         </div>
         <div class="form-field">
-          <textarea class="form-input" id="prefs-context" rows="3" placeholder="e.g. Recovering from an IT band issue. Want to strengthen glutes. No high-impact cardio for now." style="resize:vertical;">${escapeHtml(prefs.context || '')}</textarea>
+          <textarea class="form-input" id="prefs-context" rows="10" placeholder="e.g. Recovering from an IT band issue. Want to strengthen glutes. No high-impact cardio for now." style="resize:vertical;min-height:180px;">${escapeHtml(prefs.context || '')}</textarea>
         </div>
 
         <div class="section-header" style="margin-bottom:8px;margin-top:20px;">Fitness Level</div>
