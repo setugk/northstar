@@ -1838,7 +1838,7 @@
 
   <script>
     // ============ VERSION ============
-    const APP_VERSION = '1.18';
+    const APP_VERSION = '1.19';
     document.getElementById('app-footer').innerHTML = `Northstar v${APP_VERSION} &copy; Setu Kathawate`;
 
     // ============ AUTH ============
@@ -2984,6 +2984,26 @@ Format tips:
 
     const HEALTH_SCHEDULE_KEY = 'northstar-health-schedule';
     const HEALTH_STATE_KEY = 'northstar-health-state';
+    const HEALTH_EXTRA_KEY = 'northstar-health-extra';
+
+    function getHealthExtra(dateStr) {
+      const all = JSON.parse(localStorage.getItem(HEALTH_EXTRA_KEY) || '{}');
+      return all[dateStr] || [];
+    }
+
+    function addHealthExtra(dateStr, ex) {
+      const all = JSON.parse(localStorage.getItem(HEALTH_EXTRA_KEY) || '{}');
+      if (!all[dateStr]) all[dateStr] = [];
+      all[dateStr].push(ex);
+      localStorage.setItem(HEALTH_EXTRA_KEY, JSON.stringify(all));
+    }
+
+    function deleteHealthExtra(dateStr, exId) {
+      const all = JSON.parse(localStorage.getItem(HEALTH_EXTRA_KEY) || '{}');
+      if (!all[dateStr]) return;
+      all[dateStr] = all[dateStr].filter(e => e.id !== exId);
+      localStorage.setItem(HEALTH_EXTRA_KEY, JSON.stringify(all));
+    }
     let healthSchedule = {};
 
     function loadHealthSchedule() {
@@ -3137,6 +3157,55 @@ Format tips:
         </div>
       `;
 
+      const extras = getHealthExtra(displayDateStr);
+
+      const extrasHtml = extras.length === 0 ? '' : `
+        <div class="section-header" style="margin-top:20px;">Also logged</div>
+        <div class="goal-card">
+          <div class="goal-tasks" style="display:block;border-top:none;">
+            ${extras.map(ex => {
+              const tag = ex.duration ? ex.duration : `${ex.sets} × ${ex.reps}`;
+              return `
+                <div class="task-item completed" data-extra-id="${ex.id}">
+                  <div class="task-checkbox checked" style="pointer-events:none;">
+                    <svg fill="none" stroke="white" stroke-width="3" viewBox="0 0 24 24"><polyline points="20,6 9,17 4,12"/></svg>
+                  </div>
+                  <div class="task-content">
+                    <div class="task-title">${escapeHtml(ex.name)}</div>
+                    <div class="task-meta"><span class="task-time">${escapeHtml(tag)}</span></div>
+                    ${ex.note ? `<div style="font-size:12px;color:var(--text-tertiary);margin-top:4px;">${escapeHtml(ex.note)}</div>` : ''}
+                  </div>
+                  <button class="config-action-btn danger" data-delete-extra="${ex.id}" style="flex-shrink:0;" aria-label="Remove">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6M9 6V4h6v2"/></svg>
+                  </button>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `;
+
+      const logBtnHtml = `
+        <button class="btn btn-ghost btn-block" id="log-activity-btn" style="margin-top:16px;">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" style="margin-right:6px;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Log activity
+        </button>
+      `;
+
+      function wireCommon() {
+        view.querySelector('#health-week-strip').addEventListener('click', e => {
+          const d = e.target.closest('[data-strip-day]');
+          if (d) renderHealth(parseInt(d.dataset.stripDay));
+        });
+        view.querySelector('#log-activity-btn').addEventListener('click', () => openLogSheet(displayDateStr));
+        view.querySelectorAll('[data-delete-extra]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            deleteHealthExtra(displayDateStr, btn.dataset.deleteExtra);
+            renderHealth();
+          });
+        });
+      }
+
       if (schedule.isRest) {
         view.innerHTML = `
           ${headerHtml}
@@ -3148,11 +3217,10 @@ Format tips:
             <div class="health-rest-tip">A leisurely walk</div>
             <div class="health-rest-tip">Or complete rest</div>
           </div>
+          ${extrasHtml}
+          ${logBtnHtml}
         `;
-        view.querySelector('#health-week-strip').addEventListener('click', e => {
-          const d = e.target.closest('[data-strip-day]');
-          if (d) renderHealth(parseInt(d.dataset.stripDay));
-        });
+        wireCommon();
         return;
       }
 
@@ -3206,12 +3274,11 @@ Format tips:
         <div class="goal-card">
           <div class="goal-tasks" style="display:block;border-top:none;">${exercisesHtml}</div>
         </div>`}
+        ${extrasHtml}
+        ${logBtnHtml}
       `;
 
-      view.querySelector('#health-week-strip').addEventListener('click', e => {
-        const d = e.target.closest('[data-strip-day]');
-        if (d) renderHealth(parseInt(d.dataset.stripDay));
-      });
+      wireCommon();
 
       view.querySelectorAll('[data-exercise-id]').forEach(item => {
         item.querySelector('.task-checkbox').addEventListener('click', (e) => {
@@ -3226,18 +3293,19 @@ Format tips:
     }
 
     // ============ RENDER: PROGRESS VIEW ============
-    function renderProgress() {
+    let progressTab = 'health';
+
+    function renderProgress(tab) {
+      if (tab !== undefined) progressTab = tab;
       const view = document.getElementById('view-progress');
       const today = new Date();
       const todayStr = today.toISOString().split('T')[0];
 
-      // Build 4-week calendar: 7 rows (Mon-Sun) × 4 cols (weeks, oldest left)
-      // Find most recent Monday
+      // ── Health tab content ──
       const dow = today.getDay();
       const daysToMon = dow === 0 ? 6 : dow - 1;
       const thisMonday = new Date(today);
       thisMonday.setDate(today.getDate() - daysToMon);
-
       const hs = JSON.parse(localStorage.getItem(HEALTH_STATE_KEY) || '{}');
 
       function dayStatus(d) {
@@ -3245,17 +3313,14 @@ Format tips:
         if (dateStr > todayStr) return 'future';
         const dw = d.getDay();
         const sched = healthSchedule[dw];
-        if (sched.isRest) return 'rest';
+        const extras = getHealthExtra(dateStr);
+        if (sched.isRest) return extras.length > 0 ? 'complete' : 'rest';
         const exs = sched.exercises || [];
-        if (exs.length === 0) return 'missed';
+        if (exs.length === 0) return extras.length > 0 ? 'complete' : 'missed';
         return exs.every(ex => hs[ex.id] === dateStr) ? 'complete' : 'missed';
       }
 
-      // Rows = day of week (0=Mon..6=Sun), Cols = week (0=oldest..3=newest)
       const DAY_ROW_LABELS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
-      // day-of-week index (Mon=0..Sun=6) → getDay() value
-      const DOW_MAP = [1, 2, 3, 4, 5, 6, 0];
-
       let calRows = '';
       for (let row = 0; row < 7; row++) {
         let cells = '';
@@ -3269,69 +3334,45 @@ Format tips:
         calRows += `<div class="cal-day-label">${DAY_ROW_LABELS[row]}</div>${cells}`;
       }
 
-      // Streak
+      // Streak: only days where you actually did something count toward the number.
+      // Pure rest days (nothing logged) are transparent — they don't add to the streak
+      // but they don't break it either.
       let streak = 0;
       for (let i = 0; i < 180; i++) {
         const d = new Date(today);
         d.setDate(today.getDate() - i);
+        const dateStr = d.toISOString().split('T')[0];
+        if (dateStr > todayStr) continue;
         const dw = d.getDay();
         const sched = healthSchedule[dw];
-        if (sched.isRest) { streak++; continue; }
+        const extras = getHealthExtra(dateStr);
+        if (sched.isRest) {
+          if (extras.length > 0) streak++;
+          // pure rest day: transparent — skip without counting or breaking
+          continue;
+        }
         const exs = sched.exercises || [];
-        const dateStr = d.toISOString().split('T')[0];
-        if (exs.length > 0 && exs.every(ex => hs[ex.id] === dateStr)) { streak++; } else { break; }
+        const done = exs.length > 0 && exs.every(ex => hs[ex.id] === dateStr);
+        if (done || extras.length > 0) { streak++; } else { break; }
       }
 
-      // This month workouts
+      // Active days this month: any day where you completed planned exercises OR logged extras.
       const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
-      let workoutDays = 0, completedDays = 0;
+      let activeDays = 0, daysElapsed = 0;
       for (const d = new Date(monthStart); d <= today; d.setDate(d.getDate() + 1)) {
+        daysElapsed++;
+        const dateStr = d.toISOString().split('T')[0];
         const dw = d.getDay();
-        if (!healthSchedule[dw].isRest) {
-          workoutDays++;
-          const exs = healthSchedule[dw].exercises || [];
-          const dateStr = d.toISOString().split('T')[0];
-          if (exs.length > 0 && exs.every(ex => hs[ex.id] === dateStr)) completedDays++;
+        const sched = healthSchedule[dw];
+        const extras = getHealthExtra(dateStr);
+        if (extras.length > 0) { activeDays++; continue; }
+        if (!sched.isRest) {
+          const exs = sched.exercises || [];
+          if (exs.length > 0 && exs.every(ex => hs[ex.id] === dateStr)) activeDays++;
         }
       }
 
-      const overall = getOverallProgress();
-      const hour = today.getHours();
-      let greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
-      const name = getUserName();
-      if (name) greeting += `, ${name}`;
-
-      const goalsHtml = state.goals.length === 0
-        ? `<div class="card" style="text-align:center;padding:20px;color:var(--text-tertiary);font-size:14px;">No goals yet — add some in Settings.</div>`
-        : state.goals.map((goal, i) => {
-          const p = getGoalProgress(goal);
-          return `
-            <div class="card" style="margin-bottom:8px;padding:14px 16px;">
-              <div style="display:flex;align-items:flex-start;gap:10px;">
-                <div class="goal-number" style="flex-shrink:0;margin-top:1px;">${i + 1}</div>
-                <div style="flex:1;min-width:0;">
-                  <div style="font-size:14px;font-weight:500;margin-bottom:6px;line-height:1.3;">${escapeHtml(goal.title)}</div>
-                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-                    <span style="font-size:12px;color:var(--text-secondary);">${p.completed}/${p.total} tasks</span>
-                    <span style="font-size:13px;font-weight:600;color:var(--success);">${p.percent}%</span>
-                  </div>
-                  <div class="goal-progress-bar" style="height:4px;"><div class="goal-progress-fill" style="width:${p.percent}%"></div></div>
-                </div>
-              </div>
-            </div>
-          `;
-        }).join('');
-
-      view.innerHTML = `
-        <div class="header" style="margin-bottom:24px;">
-          <div class="greeting">${greeting}</div>
-          <div class="page-title">Progress</div>
-        </div>
-
-        <div class="section-header" style="margin-bottom:14px;">
-          Health
-          <span style="color:var(--text-tertiary);font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;"> · last 4 weeks</span>
-        </div>
+      const healthPanelHtml = `
         <div class="card" style="margin-bottom:12px;">
           <div class="progress-calendar" style="margin-bottom:14px;">${calRows}</div>
           <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
@@ -3351,27 +3392,64 @@ Format tips:
               <div style="font-size:11px;color:var(--text-secondary);margin-top:2px;">day streak</div>
             </div>
             <div style="flex:1;text-align:center;padding:12px 8px;background:var(--surface-hover);border-radius:var(--radius-sm);">
-              <div style="font-size:26px;font-weight:700;color:var(--accent);">${workoutDays > 0 ? Math.round((completedDays / workoutDays) * 100) : 0}%</div>
-              <div style="font-size:11px;color:var(--text-secondary);margin-top:2px;">${completedDays}/${workoutDays} this month</div>
+              <div style="font-size:26px;font-weight:700;color:var(--accent);">${activeDays}</div>
+              <div style="font-size:11px;color:var(--text-secondary);margin-top:2px;">active days this month</div>
             </div>
           </div>
         </div>
-
-        <div class="section-header" style="margin-top:20px;margin-bottom:12px;">
-          Goals
-          <span style="color:var(--text-tertiary);font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;"> · ${escapeHtml(state.quarter)}</span>
-        </div>
-        ${state.goals.length > 0 ? `
-        <div class="card" style="margin-bottom:8px;padding:14px 16px;">
-          <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-tertiary);margin-bottom:8px;">Overall</div>
-          <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:8px;">
-            <span style="font-size:26px;font-weight:700;color:var(--success);">${overall.percent}%</span>
-            <span style="font-size:13px;color:var(--text-secondary);">${overall.completed}/${overall.total} tasks</span>
-          </div>
-          <div class="goal-progress-bar" style="height:5px;"><div class="goal-progress-fill" style="width:${overall.percent}%"></div></div>
-        </div>` : ''}
-        ${goalsHtml}
       `;
+
+      // ── Goals tab content ──
+      const overall = getOverallProgress();
+      const goalsPanelHtml = `
+        ${state.goals.length === 0
+          ? `<div class="card" style="text-align:center;padding:20px;color:var(--text-tertiary);font-size:14px;">No goals yet — add some in Settings.</div>`
+          : `<div class="card" style="margin-bottom:8px;padding:14px 16px;">
+               <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-tertiary);margin-bottom:8px;">Overall · ${escapeHtml(state.quarter)}</div>
+               <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:8px;">
+                 <span style="font-size:26px;font-weight:700;color:var(--success);">${overall.percent}%</span>
+                 <span style="font-size:13px;color:var(--text-secondary);">${overall.completed}/${overall.total} tasks</span>
+               </div>
+               <div class="goal-progress-bar" style="height:5px;"><div class="goal-progress-fill" style="width:${overall.percent}%"></div></div>
+             </div>
+             ${state.goals.map((goal, i) => {
+               const p = getGoalProgress(goal);
+               return `
+                 <div class="card" style="margin-bottom:8px;padding:14px 16px;">
+                   <div style="display:flex;align-items:flex-start;gap:10px;">
+                     <div class="goal-number" style="flex-shrink:0;margin-top:1px;">${i + 1}</div>
+                     <div style="flex:1;min-width:0;">
+                       <div style="font-size:14px;font-weight:500;margin-bottom:6px;line-height:1.3;">${escapeHtml(goal.title)}</div>
+                       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                         <span style="font-size:12px;color:var(--text-secondary);">${p.completed}/${p.total} tasks</span>
+                         <span style="font-size:13px;font-weight:600;color:var(--success);">${p.percent}%</span>
+                       </div>
+                       <div class="goal-progress-bar" style="height:4px;"><div class="goal-progress-fill" style="width:${p.percent}%"></div></div>
+                     </div>
+                   </div>
+                 </div>
+               `;
+             }).join('')}`
+        }
+      `;
+
+      view.innerHTML = `
+        <div class="header" style="margin-bottom:20px;">
+          <div style="font-size:13px;color:var(--text-tertiary);margin-bottom:2px;">${today.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</div>
+          <div class="page-title">Progress</div>
+        </div>
+        <div class="config-tabs">
+          <button class="config-tab${progressTab === 'health' ? ' active' : ''}" data-ptab="health">Health</button>
+          <button class="config-tab${progressTab === 'goals' ? ' active' : ''}" data-ptab="goals">Goals</button>
+        </div>
+        <div style="margin-top:16px;">
+          ${progressTab === 'health' ? healthPanelHtml : goalsPanelHtml}
+        </div>
+      `;
+
+      view.querySelectorAll('[data-ptab]').forEach(btn => {
+        btn.addEventListener('click', () => renderProgress(btn.dataset.ptab));
+      });
     }
 
     // ============ EDIT SHEET ============
@@ -3567,6 +3645,74 @@ Format tips:
         const type = document.getElementById('ef-day-type').value.trim();
         if (type) { updateDayType(dayIndex, type); }
         closeEditSheet(); renderConfig();
+      });
+    }
+
+    function openLogSheet(dateStr) {
+      let isDuration = false;
+      document.getElementById('edit-sheet').innerHTML = `
+        <div class="edit-sheet-title">Log Activity</div>
+        <div class="form-field">
+          <label class="form-label">Exercise</label>
+          <input class="form-input" id="ef-log-name" type="text" placeholder="e.g. Pull-ups" autocomplete="off">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Type</label>
+          <div class="selector-options" style="gap:6px;" id="ef-log-type">
+            <button class="selector-btn btn-sm selected" data-dur="0">Sets &amp; Reps</button>
+            <button class="selector-btn btn-sm" data-dur="1">Duration</button>
+          </div>
+        </div>
+        <div id="ef-log-setsreps" style="display:flex;gap:10px;">
+          <div class="form-field" style="flex:1;">
+            <label class="form-label">Sets</label>
+            <input class="form-input" id="ef-log-sets" type="number" min="1" max="20" value="3">
+          </div>
+          <div class="form-field" style="flex:2;">
+            <label class="form-label">Reps</label>
+            <input class="form-input" id="ef-log-reps" type="text" placeholder="10 reps">
+          </div>
+        </div>
+        <div id="ef-log-dur-field" class="form-field" style="display:none;">
+          <label class="form-label">Duration</label>
+          <input class="form-input" id="ef-log-dur" type="text" placeholder="e.g. 20 min">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Note (optional)</label>
+          <input class="form-input" id="ef-log-note" type="text" placeholder="" autocomplete="off">
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-ghost" onclick="closeEditSheet()">Cancel</button>
+          <button class="btn btn-primary" id="ef-log-save">Log it</button>
+        </div>
+      `;
+      document.getElementById('edit-overlay').classList.add('visible');
+      document.getElementById('ef-log-name').focus();
+      document.querySelectorAll('#ef-log-type .selector-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('#ef-log-type .selector-btn').forEach(b => b.classList.remove('selected'));
+          btn.classList.add('selected');
+          isDuration = btn.dataset.dur === '1';
+          document.getElementById('ef-log-setsreps').style.display = isDuration ? 'none' : 'flex';
+          document.getElementById('ef-log-dur-field').style.display = isDuration ? 'block' : 'none';
+        });
+      });
+      document.getElementById('ef-log-save').addEventListener('click', () => {
+        const name = document.getElementById('ef-log-name').value.trim();
+        if (!name) return;
+        const note = document.getElementById('ef-log-note').value.trim();
+        let exData;
+        if (isDuration) {
+          const duration = document.getElementById('ef-log-dur').value.trim() || '—';
+          exData = { id: generateId(), name, duration, ...(note ? { note } : {}) };
+        } else {
+          const sets = parseInt(document.getElementById('ef-log-sets').value) || 1;
+          const reps = document.getElementById('ef-log-reps').value.trim() || '—';
+          exData = { id: generateId(), name, sets, reps, ...(note ? { note } : {}) };
+        }
+        addHealthExtra(dateStr, exData);
+        closeEditSheet();
+        renderHealth();
       });
     }
 
@@ -3835,7 +3981,7 @@ Format tips:
         if (!alreadyActive) {
           if (view === 'today') renderToday();
           if (view === 'health') { healthViewDay = null; renderHealth(); }
-          if (view === 'progress') renderProgress();
+          if (view === 'progress') { progressTab = 'health'; renderProgress(); }
         }
       });
     });
