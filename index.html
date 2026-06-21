@@ -1581,6 +1581,28 @@
       border-color: var(--accent); background: var(--accent-dim); color: var(--accent);
     }
 
+    /* API key disclosure section */
+    .api-key-details { border-top: 1px solid var(--border); margin-top: 24px; }
+    .api-key-details summary {
+      list-style: none; cursor: pointer;
+      display: flex; align-items: center; gap: 8px;
+      padding: 14px 0; font-size: 13px; color: var(--text-secondary);
+      user-select: none;
+    }
+    .api-key-details summary::-webkit-details-marker { display: none; }
+    .api-key-details[open] summary { color: var(--text-primary); }
+    .api-key-connected { color: var(--success); font-size: 11px; font-weight: 500; }
+    .api-key-chevron { margin-left: auto; transition: transform 0.2s; font-size: 11px; color: var(--text-tertiary); }
+    .api-key-details[open] .api-key-chevron { transform: rotate(180deg); }
+    .api-key-panel { padding-bottom: 16px; }
+
+    /* Exercise YouTube link */
+    .ex-watch-link {
+      display: inline-block; font-size: 11px; color: var(--text-tertiary);
+      text-decoration: none; margin-top: 4px;
+    }
+    .ex-watch-link:hover { color: var(--accent); }
+
     /* Quarter row */
     .quarter-row {
       display: flex; align-items: center;
@@ -1898,7 +1920,7 @@
 
   <script>
     // ============ VERSION ============
-    const APP_VERSION = '1.22';
+    const APP_VERSION = '1.24';
     document.getElementById('app-footer').innerHTML = `Northstar v${APP_VERSION} &copy; Setu Kathawate`;
 
     // ============ AUTH ============
@@ -3336,7 +3358,15 @@ Return ONLY a JSON object (no markdown, no explanation):
 
 Keys 1–5 are Mon–Fri. 4–5 exercises on strength days. 1 on aerobic days. 2–3 on active rest.
 ${level === 'beginner' ? 'Beginner: bodyweight and light dumbbells only, modest reps, include helpful notes.' : ''}
-Adapt exercises to the user context. Avoid anything that would aggravate mentioned injuries.`;
+Adapt exercises to the user context. Avoid anything that would aggravate mentioned injuries.
+
+ATTRIBUTE RULES — every exercise must use the correct attribute format:
+- Strength / resistance exercises (push-ups, squats, deadlifts, rows, curls, etc.): use "sets" (number) + "reps" (string like "8–12 reps"). Never use "duration" for these.
+- Cardio / aerobic (running, cycling, swimming, rowing, jump rope, walking, hiking, elliptical, stair climber, assault bike, etc.): use "duration" (string like "30 min" or "20 min"). Never use "sets"/"reps" for these.
+- Isometric holds (plank, wall sit, dead hang, hollow hold, L-sit, side plank): use "sets" + "reps" where reps is a time string (e.g. "30 sec", "45 sec"). Do not use "duration".
+- Mind-body / flexibility / recovery (yoga, meditation, stretching, foam rolling, mobility work, sauna, ice bath): use "duration" (e.g. "10 min", "15 min"). Never use "sets"/"reps".
+- Sports (basketball, tennis, boxing, rock climbing, etc.): use "duration". Never use "sets"/"reps".
+Using the wrong attribute (e.g. "sets: 2, reps: '10 reps'" for meditation) is an error.`;
 
       const res = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
@@ -3705,6 +3735,7 @@ Adapt exercises to the user context. Avoid anything that would aggravate mention
               <div class="task-title">${escapeHtml(ex.name)}</div>
               <div class="task-meta"><span class="task-time">${escapeHtml(tag)}</span></div>
               ${ex.note ? `<div style="font-size:12px;color:var(--text-tertiary);margin-top:4px;">${escapeHtml(ex.note)}</div>` : ''}
+              <a class="ex-watch-link" href="https://www.youtube.com/results?search_query=${encodeURIComponent(ex.name + ' exercise proper form')}" target="_blank" rel="noopener">Watch how →</a>
             </div>
             <div style="display:flex;gap:2px;flex-shrink:0;">
               <button class="config-action-btn" data-health-edit="${ex.id}" aria-label="Edit">${SVG_EDIT}</button>
@@ -4512,7 +4543,7 @@ Adapt exercises to the user context. Avoid anything that would aggravate mention
         </div>
 
         <div class="section-header" style="margin-bottom:8px;margin-top:20px;">Fitness Level</div>
-        <div style="display:flex;gap:6px;margin-bottom:20px;">
+        <div style="display:flex;gap:6px;margin-bottom:24px;">
           ${['Beginner','Intermediate','Advanced'].map(l => {
             const val = l.toLowerCase();
             const active = (prefs.fitnessLevel || 'beginner') === val;
@@ -4520,19 +4551,29 @@ Adapt exercises to the user context. Avoid anything that would aggravate mention
           }).join('')}
         </div>
 
-        <div class="section-header" style="margin-bottom:6px;">AI-Powered Plans</div>
-        <div style="font-size:12px;color:var(--text-secondary);margin-bottom:10px;line-height:1.5;">
-          Add your Claude API key to get personalized weekly plans based on your focus above. Your key is stored only on this device.
-        </div>
-        <div class="form-field">
-          <input class="form-input" id="prefs-api-key" type="password" placeholder="sk-ant-api03-…" autocomplete="off" value="${hasKey ? prefs.apiKey : ''}">
-        </div>
-        <div style="font-size:11px;color:var(--text-tertiary);margin-bottom:20px;">
-          Without an API key, the app picks exercises from a built-in pool each Monday.
-        </div>
-
-        <button class="btn btn-primary btn-block" id="prefs-save-btn">Save & Regenerate Plan</button>
+        <button class="btn btn-primary btn-block" id="prefs-save-btn">Regenerate Plan</button>
         <div id="prefs-status" style="text-align:center;font-size:12px;color:var(--text-secondary);margin-top:10px;min-height:18px;"></div>
+
+        <details class="api-key-details" id="api-key-details">
+          <summary>
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            Claude API key
+            ${hasKey ? `<span class="api-key-connected">● Connected</span>` : `<span style="font-size:11px;color:var(--text-muted);">Not connected</span>`}
+            <span class="api-key-chevron">▾</span>
+          </summary>
+          <div class="api-key-panel">
+            <div style="font-size:12px;color:var(--text-secondary);margin-bottom:10px;line-height:1.5;">
+              Required for AI-personalized plans. Stored only on this device — never sent anywhere except Anthropic's API.
+            </div>
+            <div class="form-field">
+              <input class="form-input" id="prefs-api-key" type="password" placeholder="sk-ant-api03-…" autocomplete="off">
+            </div>
+            <div style="display:flex;gap:8px;margin-top:4px;">
+              <button class="btn btn-ghost btn-sm" id="prefs-key-save" style="flex:1;">${hasKey ? 'Update key' : 'Save key'}</button>
+              ${hasKey ? `<button class="btn btn-ghost btn-sm danger" id="prefs-key-remove">Remove</button>` : ''}
+            </div>
+          </div>
+        </details>
       `;
 
       view.innerHTML = `
@@ -4544,7 +4585,7 @@ Adapt exercises to the user context. Avoid anything that would aggravate mention
           </div>
         </div>
         <div class="config-tabs">
-          <button class="config-tab${configTab === 'goals' ? ' active' : ''}" data-tab="goals">Goals</button>
+          <button class="config-tab${configTab === 'goals' ? ' active' : ''}" data-tab="goals">Focus</button>
           <button class="config-tab${configTab === 'health' ? ' active' : ''}" data-tab="health">Health</button>
         </div>
         <div class="config-tab-panel${configTab === 'goals' ? ' active' : ''}" id="panel-goals">${goalsTabHtml}</div>
@@ -4578,30 +4619,47 @@ Adapt exercises to the user context. Avoid anything that would aggravate mention
           });
         });
 
+        // Regenerate Plan — saves context + fitness level, triggers generation
         document.getElementById('prefs-save-btn').addEventListener('click', async () => {
           const context = document.getElementById('prefs-context').value.trim();
-          const apiKey = document.getElementById('prefs-api-key').value.trim();
-          const newPrefs = { context, fitnessLevel: currentLevel, ...(apiKey ? { apiKey } : {}) };
+          const saved = JSON.parse(localStorage.getItem(HEALTH_PREFS_KEY) || '{}');
+          const newPrefs = { ...saved, context, fitnessLevel: currentLevel };
           localStorage.setItem(HEALTH_PREFS_KEY, JSON.stringify(newPrefs));
 
           const status = document.getElementById('prefs-status');
-          status.textContent = apiKey && context ? 'Generating AI plan…' : 'Regenerating plan…';
+          status.textContent = newPrefs.apiKey && context ? 'Generating AI plan…' : 'Regenerating plan…';
 
           const mondayStr = getWeekMonday();
           try {
-            let generated;
-            if (apiKey && context) {
-              generated = await generateAISchedule(mondayStr, newPrefs, apiKey);
-            } else {
-              generated = generateWeekSchedule(mondayStr);
-            }
+            const generated = newPrefs.apiKey && context
+              ? await generateAISchedule(mondayStr, newPrefs, newPrefs.apiKey)
+              : generateWeekSchedule(mondayStr);
             localStorage.setItem(WEEKLY_SCHEDULE_KEY, JSON.stringify(generated));
             loadHealthSchedule();
-            status.textContent = generated.aiGenerated ? 'AI plan saved.' : 'Plan regenerated.';
+            status.textContent = generated.aiGenerated ? 'AI plan ready.' : 'Plan regenerated.';
             setTimeout(() => { status.textContent = ''; }, 2500);
           } catch (err) {
             status.textContent = `Error: ${err.message}`;
           }
+        });
+
+        // API key — separate save/remove
+        document.getElementById('prefs-key-save')?.addEventListener('click', () => {
+          const apiKey = document.getElementById('prefs-api-key').value.trim();
+          if (!apiKey) return;
+          const saved = JSON.parse(localStorage.getItem(HEALTH_PREFS_KEY) || '{}');
+          saved.apiKey = apiKey;
+          localStorage.setItem(HEALTH_PREFS_KEY, JSON.stringify(saved));
+          renderConfig();
+          showToast('API key saved');
+        });
+
+        document.getElementById('prefs-key-remove')?.addEventListener('click', () => {
+          if (!confirm('Remove the API key? Future plans will use the built-in exercise pool.')) return;
+          const saved = JSON.parse(localStorage.getItem(HEALTH_PREFS_KEY) || '{}');
+          delete saved.apiKey;
+          localStorage.setItem(HEALTH_PREFS_KEY, JSON.stringify(saved));
+          renderConfig();
         });
       }
 
