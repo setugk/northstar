@@ -1920,7 +1920,7 @@
 
   <script>
     // ============ VERSION ============
-    const APP_VERSION = '1.24';
+    const APP_VERSION = '1.25';
     document.getElementById('app-footer').innerHTML = `Northstar v${APP_VERSION} &copy; Setu Kathawate`;
 
     // ============ AUTH ============
@@ -3378,14 +3378,16 @@ Using the wrong attribute (e.g. "sets: 2, reps: '10 reps'" for meditation) is an
         },
         body: JSON.stringify({
           model: 'claude-haiku-4-5-20251001',
-          max_tokens: 1024,
+          max_tokens: 2048,
           messages: [{ role: 'user', content: prompt }],
         }),
       });
-      if (!res.ok) throw new Error(`API ${res.status}`);
+      if (!res.ok) throw new Error(`API error ${res.status}`);
       const data = await res.json();
       const raw = data.content[0].text.trim().replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '');
-      const parsed = JSON.parse(raw);
+      let parsed;
+      try { parsed = JSON.parse(raw); }
+      catch { throw new Error('Plan generation failed — try shortening your focus description and regenerating.'); }
       const schedule = {
         0: JSON.parse(JSON.stringify(DEFAULT_HEALTH_SCHEDULE[0])),
         6: JSON.parse(JSON.stringify(DEFAULT_HEALTH_SCHEDULE[6])),
